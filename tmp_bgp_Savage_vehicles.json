@@ -1,0 +1,125 @@
+{
+	"EThingSpotGroupType::GroupA": {
+		"fuelPercentRange": [
+			20,
+			50
+		],
+		"totalCountRange": [
+			40,
+			56
+		],
+		"vehicles": {
+			"BP_CoupeRB_C": 0.1485148514851485,
+			"Buggy": 0.1782178217821782,
+			"Rony": 0.27722772277227725,
+			"TukTuk": 0.0594059405940594,
+			"Scooter": 0.07920792079207921,
+			"Motorcycle": 0.19801980198019803,
+			"BP_Dirtbike_C": 0.0594059405940594
+		},
+		"originalCategories": [
+			"road"
+		]
+	},
+	"EThingSpotGroupType::GroupE": {
+		"fuelPercentRange": [
+			20,
+			50
+		],
+		"totalCountRange": [
+			6,
+			10
+		],
+		"vehicles": {
+			"Boat": 0.75,
+			"AquaRail": 0.25
+		},
+		"originalCategories": [
+			"boat",
+			"jetski"
+		]
+	},
+	"EThingSpotGroupType::GroupF": {
+		"fuelPercentRange": [
+			40,
+			50
+		],
+		"totalCountRange": [
+			3,
+			6
+		],
+		"vehicles": {
+			"Boat": 0.5,
+			"AquaRail": 0.5
+		},
+		"originalCategories": [
+			"boat",
+			"jetski"
+		]
+	},
+	"EThingSpotGroupType::GroupG": {
+		"fuelPercentRange": [
+			20,
+			50
+		],
+		"totalCountRange": [
+			5,
+			7
+		],
+		"vehicles": {
+			"Boat": 0.25
+		},
+		"originalCategories": [
+			"boat",
+			"zetski"
+		]
+	},
+	"EThingSpotGroupType::GroupH": {
+		"fuelPercentRange": [
+			30,
+			40
+		],
+		"totalCountRange": [
+			1,
+			2
+		],
+		"vehicles": {
+			"AquaRail": 1
+		},
+		"originalCategories": [
+			"jetski"
+		]
+	},
+	"EThingSpotGroupType::GroupC": {
+		"fuelPercentRange": [
+			30,
+			40
+		],
+		"totalCountRange": [
+			1,
+			1
+		],
+		"vehicles": {
+			"Scooter": 0.5128205128205128,
+			"Motorcycle": 0.23076923076923078,
+			"BP_Dirtbike_C": 0.2564102564102564
+		},
+		"originalCategories": [
+			"onlybikeforcaveonly"
+		]
+	},
+	"EThingSpotGroupType::GroupD": {
+		"fuelPercentRange": [
+			0,
+			0
+		],
+		"totalCountRange": [
+			2,
+			2
+		],
+		"vehicles": {},
+		"originalCategories": [
+			"gliderforairfield"
+		]
+	}
+}

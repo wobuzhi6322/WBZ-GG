@@ -1,0 +1,92 @@
+{
+	"EThingSpotGroupType::GroupA": {
+		"fuelPercentRange": [
+			40,
+			100
+		],
+		"totalCountRange": [
+			97,
+			103
+		],
+		"vehicles": {
+			"BP_CoupeRB_C": 0.13,
+			"Dacia": 0.12,
+			"Zima": 0.4,
+			"Motorcycle": 0.23,
+			"Sidecar Motorcycle": 0.03,
+			"Snowmobile": 0.09
+		},
+		"originalCategories": [
+			"road"
+		]
+	},
+	"EThingSpotGroupType::GroupB": {
+		"fuelPercentRange": [
+			50,
+			80
+		],
+		"totalCountRange": [
+			33,
+			37
+		],
+		"vehicles": {
+			"Snowmobile": 1
+		},
+		"originalCategories": [
+			"offroad"
+		]
+	},
+	"EThingSpotGroupType::GroupC": {
+		"fuelPercentRange": [
+			40,
+			100
+		],
+		"totalCountRange": [
+			8,
+			12
+		],
+		"vehicles": {
+			"BP_CoupeRB_C": 0.2,
+			"Dacia": 0.2,
+			"Zima": 0.2,
+			"Motorcycle": 0.2,
+			"Sidecar Motorcycle": 0.2
+		},
+		"originalCategories": [
+			"garage"
+		]
+	},
+	"EThingSpotGroupType::GroupD": {
+		"fuelPercentRange": [
+			40,
+			80
+		],
+		"totalCountRange": [
+			27,
+			33
+		],
+		"vehicles": {
+			"Zima": 0.64,
+			"Dacia": 0.36
+		},
+		"originalCategories": [
+			"roadplus"
+		]
+	},
+	"EThingSpotGroupType::GroupE": {
+		"fuelPercentRange": [
+			40,
+			60
+		],
+		"totalCountRange": [
+			8,
+			12
+		],
+		"vehicles": {
+			"Boat": 1
+		},
+		"originalCategories": [
+			"watersea"
+		]
+	}
+}

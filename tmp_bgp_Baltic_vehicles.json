@@ -1,0 +1,92 @@
+{
+	"EThingSpotGroupType::GroupA": {
+		"fuelPercentRange": [
+			40,
+			100
+		],
+		"totalCountRange": [
+			150,
+			152
+		],
+		"vehicles": {
+			"Dacia": 0.1951219512195122,
+			"UAZ": 0.2926829268292683,
+			"Buggy": 0.2195121951219512,
+			"Motorcycle": 0.13414634146341464,
+			"Sidecar Motorcycle": 0.036585365853658534,
+			"BP_Dirtbike_C": 0.024390243902439025,
+			"BP_CoupeRB_C": 0.0975609756097561
+		},
+		"originalCategories": [
+			"road"
+		]
+	},
+	"EThingSpotGroupType::GroupB": {
+		"fuelPercentRange": [
+			50,
+			50
+		],
+		"totalCountRange": [
+			8,
+			10
+		],
+		"vehicles": {
+			"Buggy": 0.8,
+			"BP_Dirtbike_C": 0.2
+		},
+		"originalCategories": [
+			"start"
+		]
+	},
+	"EThingSpotGroupType::GroupC": {
+		"fuelPercentRange": [
+			40,
+			100
+		],
+		"totalCountRange": [
+			8,
+			8
+		],
+		"vehicles": {
+			"Dacia": 0.5882352941176471,
+			"Motorcycle": 0.27941176470588236,
+			"Sidecar Motorcycle": 0.1323529411764706
+		},
+		"originalCategories": [
+			"garage"
+		]
+	},
+	"EThingSpotGroupType::GroupE": {
+		"fuelPercentRange": [
+			40,
+			100
+		],
+		"totalCountRange": [
+			30,
+			40
+		],
+		"vehicles": {
+			"Boat": 0.8333333333333334,
+			"AquaRail": 0.16666666666666669
+		},
+		"originalCategories": [
+			"water"
+		]
+	},
+	"EThingSpotGroupType::GroupG": {
+		"fuelPercentRange": [
+			0,
+			0
+		],
+		"totalCountRange": [
+			10,
+			10
+		],
+		"vehicles": {
+			"BP_Motorglider_C": 1
+		},
+		"originalCategories": [
+			"motorglider"
+		]
+	}
+}

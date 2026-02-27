@@ -1,0 +1,115 @@
+{
+	"EThingSpotGroupType::GroupA": {
+		"fuelPercentRange": [
+			50,
+			100
+		],
+		"totalCountRange": [
+			190,
+			210
+		],
+		"vehicles": {
+			"Motorcycle": 0.09907170294494239,
+			"Sidecar Motorcycle": 0.023276019754892994,
+			"Buggy": 0.08928571428571427,
+			"Pickup": 0.3161697457472106,
+			"BP_Dirtbike_C": 0.032467532467532464,
+			"BP_ATV_C": 0.15099689043351014,
+			"Van": 0.0704225352112676,
+			"Mirado": 0.14084507042253522,
+			"BP_CoupeRB_C": 0.07746478873239436
+		},
+		"originalCategories": [
+			"offroad",
+			"road"
+		]
+	},
+	"EThingSpotGroupType::GroupB": {
+		"fuelPercentRange": [
+			50,
+			100
+		],
+		"totalCountRange": [
+			30,
+			30
+		],
+		"vehicles": {
+			"Motorcycle": 0.20681818181818182,
+			"Sidecar Motorcycle": 0.041233766233766234,
+			"Buggy": 0.21428571428571427,
+			"BP_Dirtbike_C": 0.10746753246753246,
+			"BP_ATV_C": 0.25487012987012986,
+			"Pickup": 0.17532467532467533
+		},
+		"originalCategories": [
+			"offroad_mountain",
+			"offroad"
+		]
+	},
+	"EThingSpotGroupType::GroupE": {
+		"fuelPercentRange": [
+			40,
+			100
+		],
+		"totalCountRange": [
+			9,
+			17
+		],
+		"vehicles": {
+			"Boat": 0.625,
+			"AquaRail": 0.375
+		},
+		"originalCategories": [
+			"water"
+		]
+	},
+	"EThingSpotGroupType::GroupF": {
+		"fuelPercentRange": [
+			40,
+			100
+		],
+		"totalCountRange": [
+			3,
+			3
+		],
+		"vehicles": {
+			"Boat": 0.2857142857142857,
+			"AquaRail": 0.7142857142857142
+		},
+		"originalCategories": [
+			"water_ferry"
+		]
+	},
+	"EThingSpotGroupType::GroupC": {
+		"fuelPercentRange": [
+			100,
+			100
+		],
+		"totalCountRange": [
+			2,
+			2
+		],
+		"vehicles": {
+			"Mirado": 1
+		},
+		"originalCategories": [
+			"hacienda_goldmirado"
+		]
+	},
+	"EThingSpotGroupType::GroupG": {
+		"fuelPercentRange": [
+			0,
+			0
+		],
+		"totalCountRange": [
+			10,
+			10
+		],
+		"vehicles": {
+			"BP_Motorglider_C": 1
+		},
+		"originalCategories": [
+			"motorglider"
+		]
+	}
+}

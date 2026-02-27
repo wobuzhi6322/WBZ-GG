@@ -1,0 +1,35 @@
+{
+	"EThingSpotGroupType::GroupA": {
+		"fuelPercentRange": [
+			30,
+			50
+		],
+		"totalCountRange": [
+			10,
+			20
+		],
+		"vehicles": {
+			"Motorcycle": 0.5,
+			"BP_Dirtbike_C": 0.5
+		},
+		"originalCategories": [
+			"road"
+		]
+	},
+	"EThingSpotGroupType::GroupL": {
+		"fuelPercentRange": [
+			30,
+			50
+		],
+		"totalCountRange": [
+			4,
+			8
+		],
+		"vehicles": {
+			"Buggy": 1
+		},
+		"originalCategories": [
+			"offroad"
+		]
+	}
+}

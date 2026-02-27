@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 17 24 39;
+  --background-start-rgb: 249 250 251;
+  --background-end-rgb: 249 250 251;
+  --wbz-base: 249 250 251;
+  --wbz-surface: 255 255 255;
+  --wbz-dark: 249 250 251;
+  --wbz-card: 255 255 255;
+  --wbz-gold: 224 160 10;
+  --wbz-mute: 96 110 135;
+}
+
+html.dark {
+  --foreground-rgb: 229 231 235;
+  --background-start-rgb: 35 37 41;
+  --background-end-rgb: 35 37 41;
+  --wbz-base: 35 37 41;
+  --wbz-surface: 43 45 49;
+  --wbz-dark: 35 37 41;
+  --wbz-card: 43 45 49;
+  --wbz-gold: 242 169 0;
+  --wbz-mute: 136 136 136;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background-color: rgb(var(--background-start-rgb));
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark .bg-black\/20,
+html.dark .bg-black\/25,
+html.dark .bg-black\/30,
+html.dark .bg-black\/35,
+html.dark .bg-black\/40,
+html.dark .bg-black\/45,
+html.dark .bg-wbz-card,
+html.dark .bg-wbz-card\/40,
+html.dark .bg-wbz-card\/50,
+html.dark .bg-wbz-card\/60,
+html.dark .bg-wbz-card\/70,
+html.dark .bg-wbz-card\/80,
+html.dark .bg-wbz-card\/90,
+html.dark .bg-zinc-950\/95,
+html.dark .bg-\[\#0f1119\] {
+  background-color: #2b2d31 !important;
+}
+
+html.light .text-white {
+  color: rgb(21 28 40) !important;
+}
+
+html.light .text-wbz-mute {
+  color: rgb(var(--wbz-mute)) !important;
+}
+
+html.light .bg-black\/20,
+html.light .bg-black\/25,
+html.light .bg-black\/30,
+html.light .bg-black\/35,
+html.light .bg-black\/40,
+html.light .bg-black\/45,
+html.light .bg-black\/50,
+html.light .bg-black\/60,
+html.light .bg-black\/70,
+html.light .bg-zinc-950\/95,
+html.light .bg-wbz-dark\/80,
+html.light .bg-wbz-dark\/95,
+html.light .bg-wbz-card\/80,
+html.light .bg-wbz-card\/60,
+html.light .bg-wbz-card\/50,
+html.light .bg-wbz-card\/40 {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html.light .bg-white\/5 {
+  background-color: rgba(226, 232, 240, 0.42) !important;
+}
+
+html.light .bg-white\/10 {
+  background-color: rgba(226, 232, 240, 0.55) !important;
+}
+
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20 {
+  border-color: rgba(148, 163, 184, 0.45) !important;
+}
+
+html.light .bg-dark-surface {
+  background-color: #ffffff !important;
+}
+
+html.light .shadow-black\/50 {
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .glass-panel {
+    @apply bg-wbz-card/60 backdrop-blur-md border border-white/5 shadow-xl;
+  }
+
+  .glass-input {
+    @apply bg-wbz-card/40 backdrop-blur-sm border border-white/10 focus:border-wbz-gold/50 focus:ring-1 focus:ring-wbz-gold/50 transition-all duration-300;
+  }
+
+  .neon-text-gold {
+    text-shadow: 0 0 10px rgba(242, 169, 0, 0.5);
+  }
+}

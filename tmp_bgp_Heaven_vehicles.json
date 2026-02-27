@@ -1,0 +1,18 @@
+{
+	"EThingSpotGroupType::GroupA": {
+		"fuelPercentRange": [
+			20,
+			30
+		],
+		"totalCountRange": [
+			0,
+			0
+		],
+		"vehicles": {
+			"Motorcycle": 1
+		},
+		"originalCategories": [
+			"road"
+		]
+	}
+}
