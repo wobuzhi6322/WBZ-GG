@@ -909,17 +909,12 @@ export async function getPlayerSuggestions(
   limit = 10,
   preferredRegion: string | null | undefined = null
 ): Promise<string[]> {
-  const safeLimit = Math.min(Math.max(limit, 1), 10);
-  const normalizedQuery = normalizeSearchName(query);
-  if (normalizedQuery.length < 3) return [];
+  void query;
+  void limit;
+  void preferredRegion;
 
-  const names = await getCachedPlayerSuggestionPool();
-  const cachedMatches = rankPrefixMatches(names, normalizedQuery, safeLimit);
-  if (cachedMatches.length > 0) {
-    return cachedMatches;
-  }
-
-  return fetchLivePrefixMatches(normalizedQuery, safeLimit, preferredRegion);
+  // Disabled to protect PUBG API quota.
+  return [];
 }
 
 async function getLatestTournamentSummary(): Promise<{

@@ -9,18 +9,14 @@ import RankedStatsTable from "@/components/features/RankedStatsTable";
 import TierProgressGraph from "@/components/features/TierProgressGraph";
 import AITacticalCoach from "@/components/features/AITacticalCoach";
 import {
-  getCurrentSeasonInfo,
   getMatches,
   getPlayer,
   getPlayerById,
-  getPlayerStats,
-  getRankedStats,
-  getSeasonOptions,
   isPubgApiKeyMissingError,
   isPubgApiQuotaExceededError,
   sanitizePlatformShard,
 } from "@/lib/pubg";
-import type { MatchQueueFilter, MatchSummary, PubgStats } from "@/lib/pubg";
+import type { MatchQueueFilter, MatchSummary, PubgStats, RankedStats } from "@/lib/pubg";
 import { getSteamProfile } from "@/lib/steam";
 import type { LanguageType } from "@/data/locales";
 import {
@@ -30,6 +26,10 @@ import {
   sanitizePlayerSearchInput,
   sanitizeSeasonId,
 } from "@/lib/requestValidation";
+import {
+  getPubgPlayerCache,
+  upsertPubgPlayerCacheWithResult,
+} from "@/features/player-search/api/cacheService";
 
 interface ProfilePageProps {
   params: { username: string };
@@ -146,6 +146,19 @@ function resolveServerLanguage(value: string | undefined): LanguageType {
   return "ko";
 }
 
+const PLAYER_CACHE_TTL_MS = 20 * 60 * 1000;
+
+function isPlayerCacheFresh(updatedAt: string | null): boolean {
+  if (!updatedAt) return false;
+  const updatedAtMs = Date.parse(updatedAt);
+  if (!Number.isFinite(updatedAtMs)) return false;
+  return Date.now() - updatedAtMs <= PLAYER_CACHE_TTL_MS;
+}
+
+function toCachedMatches(payload: unknown): MatchSummary[] {
+  return Array.isArray(payload) ? (payload as MatchSummary[]) : [];
+}
+
 export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const language = resolveServerLanguage(cookies().get("wbz-language")?.value);
   const labels =
@@ -194,24 +207,83 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const requestedSeasonId = parseSeasonFilter(searchParams?.season);
   const requestedAccountId = parseAccountId(searchParams?.id ?? searchParams?.accountId);
   const platform = requestedPlatform;
+
+  const cachedPlayerEntry = !forceRefresh ? await getPubgPlayerCache<unknown>(decodedUsername) : null;
+  const cachedMatchesAll = toCachedMatches(cachedPlayerEntry?.statsData);
+  const canUseFreshCache =
+    Boolean(cachedPlayerEntry) &&
+    isPlayerCacheFresh(cachedPlayerEntry?.updatedAt ?? null) &&
+    cachedMatchesAll.length > 0;
+
   let quotaExceeded = false;
   let missingApiKey = false;
   let player = null as Awaited<ReturnType<typeof getPlayer>>;
-  try {
-    player = requestedAccountId
-      ? await getPlayerById(requestedAccountId, requestedPlatform, forceRefresh)
-      : null;
-    if (!player && !requestedAccountId) {
-      player = await getPlayer(decodedUsername, requestedPlatform, forceRefresh);
+  const playerStats = null as PubgStats | null;
+  const rankedStats = null as RankedStats | null;
+  const seasonOptions: Array<{ seasonId: string; seasonNumber: number | null; label: string; isCurrent: boolean }> = [];
+  const currentSeason = null as { seasonId: string; seasonNumber: number | null; label: string } | null;
+  let selectedSeasonId: string | null = requestedSeasonId;
+  let matchesAll: MatchSummary[] = cachedMatchesAll;
+
+  if (canUseFreshCache && cachedPlayerEntry) {
+    player = {
+      id: cachedPlayerEntry.accountId,
+      name: cachedPlayerEntry.playerName || decodedUsername,
+      shardId: platform,
+      matchIds: [],
+    };
+  } else {
+    try {
+      player = requestedAccountId
+        ? await getPlayerById(requestedAccountId, requestedPlatform, forceRefresh)
+        : null;
+      if (!player && !requestedAccountId) {
+        player = await getPlayer(decodedUsername, requestedPlatform, forceRefresh);
+      }
+      if (!player && cachedPlayerEntry) {
+        player = {
+          id: cachedPlayerEntry.accountId,
+          name: cachedPlayerEntry.playerName || decodedUsername,
+          shardId: platform,
+          matchIds: [],
+        };
+      }
+
+      if (player) {
+        selectedSeasonId = requestedSeasonId;
+        matchesAll = await getMatches(player.id, player.matchIds, 120, "all", platform, forceRefresh, selectedSeasonId);
+
+        const upsertResult = await upsertPubgPlayerCacheWithResult({
+          playerName: decodedUsername,
+          accountId: player.id,
+          statsData: matchesAll,
+        });
+        if (!upsertResult.ok) {
+          console.error("DB 저장 실패:", upsertResult.error);
+        }
+      }
+    } catch (error) {
+      if (isPubgApiQuotaExceededError(error)) {
+        quotaExceeded = true;
+      } else if (isPubgApiKeyMissingError(error)) {
+        missingApiKey = true;
+      } else {
+        throw error;
+      }
     }
-  } catch (error) {
-    if (isPubgApiQuotaExceededError(error)) {
-      quotaExceeded = true;
-    } else if (isPubgApiKeyMissingError(error)) {
-      missingApiKey = true;
-    } else {
-      throw error;
-    }
+  }
+
+  if ((quotaExceeded || missingApiKey) && cachedPlayerEntry && !player) {
+    player = {
+      id: cachedPlayerEntry.accountId,
+      name: cachedPlayerEntry.playerName || decodedUsername,
+      shardId: platform,
+      matchIds: [],
+    };
+    matchesAll = cachedMatchesAll;
+    selectedSeasonId = requestedSeasonId;
+    quotaExceeded = false;
+    missingApiKey = false;
   }
 
   if (quotaExceeded) {
@@ -256,34 +328,19 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     return notFound();
   }
 
-  const [seasonOptions, currentSeason] = await Promise.all([
-    getSeasonOptions(platform, 64, forceRefresh),
-    getCurrentSeasonInfo(platform, forceRefresh),
-  ]);
-
-  const availableSeasonIds = new Set(seasonOptions.map((season) => season.seasonId));
-  const currentSeasonInList = seasonOptions.find((season) => season.isCurrent) ?? null;
-  const selectedSeasonId =
-    requestedSeasonId && availableSeasonIds.has(requestedSeasonId)
-      ? requestedSeasonId
-      : (currentSeasonInList?.seasonId ?? seasonOptions[0]?.seasonId ?? null);
-
   const selectedSeasonOption = seasonOptions.find((season) => season.seasonId === selectedSeasonId) ?? null;
   const selectedSeasonLabel = selectedSeasonOption?.label ?? currentSeason?.label ?? null;
   const selectedSeasonButtonLabel = selectedSeasonLabel ?? labels.seasonButton;
   const featuredSeasonOptions = seasonOptions.slice(0, 3);
   const archivedSeasonOptions = seasonOptions.slice(3);
 
-  const [playerStats, rankedStats, matches, steamProfile] = await Promise.all([
-    getPlayerStats(player.id, platform, forceRefresh, selectedSeasonId),
-    getRankedStats(player.id, platform, forceRefresh, selectedSeasonId),
-    getMatches(player.id, player.matchIds, 120, selectedQueue, platform, forceRefresh, selectedSeasonId),
-    platform === "steam" ? getSteamProfile(player.name) : Promise.resolve(null),
-  ]);
-  const resolvedOverview = playerStats?.overview ?? buildOverviewFromMatches(matches, selectedQueue);
+  const steamProfile = platform === "steam" ? await getSteamProfile(player.name) : null;
+  const matches =
+    selectedQueue === "all" ? matchesAll : matchesAll.filter((match) => match.queueType === selectedQueue);
+  const resolvedOverview = playerStats?.overview ?? buildOverviewFromMatches(matches, "all");
   const resolvedRadar = playerStats?.radar?.length
     ? playerStats.radar
-    : buildRadarFromMatches(matches, selectedQueue);
+    : buildRadarFromMatches(matches, "all");
 
   const profileHrefBase = `/profile/${encodeURIComponent(player.name)}`;
   const buildProfileHref = (queue: MatchQueueFilter = "all", seasonId: string | null = selectedSeasonId): string => {

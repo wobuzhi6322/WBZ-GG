@@ -20,6 +20,11 @@ export interface PubgPlayerCacheEntry<T = unknown> {
   isFresh: boolean;
 }
 
+export interface PubgPlayerCacheUpsertResult {
+  ok: boolean;
+  error: string | null;
+}
+
 function normalizePlayerName(playerName: string): string {
   return playerName.trim();
 }
@@ -43,7 +48,9 @@ export async function getPubgPlayerCache<T = unknown>(
   const { data, error } = await supabase
     .from(PUBG_PLAYER_CACHE_TABLE)
     .select("player_name, account_id, stats_data, updated_at")
-    .eq("player_name", safePlayerName)
+    .ilike("player_name", safePlayerName)
+    .order("updated_at", { ascending: false })
+    .limit(1)
     .maybeSingle<PubgPlayerCacheRow>();
 
   if (error) {
@@ -79,12 +86,42 @@ export async function upsertPubgPlayerCache<T>({
   accountId: string;
   statsData: T;
 }): Promise<void> {
+  const result = await upsertPubgPlayerCacheWithResult({
+    playerName,
+    accountId,
+    statsData,
+  });
+
+  if (!result.ok && result.error) {
+    console.warn(`[pubg-player-cache] upsert failed for "${playerName.trim()}": ${result.error}`);
+  }
+}
+
+export async function upsertPubgPlayerCacheWithResult<T>({
+  playerName,
+  accountId,
+  statsData,
+}: {
+  playerName: string;
+  accountId: string;
+  statsData: T;
+}): Promise<PubgPlayerCacheUpsertResult> {
   const safePlayerName = normalizePlayerName(playerName);
   const safeAccountId = accountId.trim();
-  if (!safePlayerName || !safeAccountId) return;
+  if (!safePlayerName || !safeAccountId) {
+    return {
+      ok: false,
+      error: "invalid playerName/accountId",
+    };
+  }
 
   const supabase = getSupabaseAdminClient();
-  if (!supabase) return;
+  if (!supabase) {
+    return {
+      ok: false,
+      error: "supabase admin client not configured",
+    };
+  }
 
   const { error } = await supabase.from(PUBG_PLAYER_CACHE_TABLE).upsert(
     {
@@ -99,6 +136,14 @@ export async function upsertPubgPlayerCache<T>({
   );
 
   if (error) {
-    console.warn(`[pubg-player-cache] upsert failed for "${safePlayerName}": ${error.message}`);
+    return {
+      ok: false,
+      error: error.message,
+    };
   }
+
+  return {
+    ok: true,
+    error: null,
+  };
 }
