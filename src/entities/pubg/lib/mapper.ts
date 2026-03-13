@@ -1,4 +1,4 @@
-import { MAP_INTEL_MAPS } from "@/data/mapIntelMaps";
+﻿import { MAP_INTEL_MAPS } from "@/data/mapIntelMaps";
 import type {
   MatchBlueZoneState,
   LeaderboardEntry,
@@ -19,36 +19,36 @@ import type {
 } from "@/entities/pubg/types";
 
 const MODE_LABELS: Record<string, string> = {
-  solo: "솔로",
-  "solo-fpp": "솔로 (FPP)",
-  duo: "듀오",
-  "duo-fpp": "듀오 (FPP)",
-  squad: "스쿼드",
-  "squad-fpp": "스쿼드 (FPP)",
-  "esports-squad-fpp": "e스포츠 스쿼드 (FPP)",
+  solo: "\uc194\ub85c",
+  "solo-fpp": "\uc194\ub85c(1\uc778\uce6d)",
+  duo: "\ub4c0\uc624",
+  "duo-fpp": "\ub4c0\uc624(1\uc778\uce6d)",
+  squad: "\uc2a4\ucffc\ub4dc(3\uc778\uce6d)",
+  "squad-fpp": "\uc2a4\ucffc\ub4dc(1\uc778\uce6d)",
+  "esports-squad-fpp": "e\uc2a4\ud3ec\uce20 \uc2a4\ucffc\ub4dc(1\uc778\uce6d)",
 };
 
 const MAP_LABELS: Record<string, string> = {
-  Erangel_Main: "에란겔",
-  Desert_Main: "미라마",
-  Savage_Main: "사녹",
-  DihorOtok_Main: "비켄디",
-  Baltic_Main: "비켄디",
-  Summerland_Main: "카라킨",
-  Chimera_Main: "파라모",
-  Tiger_Main: "태이고",
-  Kiki_Main: "데스톤",
-  Neon_Main: "론도",
-  Heaven_Main: "헤이븐",
-  Range_Main: "훈련장",
+  Baltic_Main: "\uc5d0\ub780\uac94",
+  Erangel_Main: "\uc5d0\ub780\uac94",
+  Desert_Main: "\ubbf8\ub77c\ub9c8",
+  Savage_Main: "\uc0ac\ub179",
+  DihorOtok_Main: "\ube44\ucf04\ub514",
+  Summerland_Main: "\uce74\ub77c\ud0a8",
+  Chimera_Main: "\ud30c\ub77c\ubaa8",
+  Tiger_Main: "\ud0dc\uc774\uace0",
+  Kiki_Main: "\ub370\uc2a4\ud134",
+  Neon_Main: "\ub860\ub3c4",
+  Heaven_Main: "\ud5e4\uc774\ube10",
+  Range_Main: "\ud6c8\ub828\uc7a5",
 };
 
 const MAP_INTEL_ID_BY_RAW_MAP: Record<string, string> = {
+  Baltic_Main: "Baltic",
   Erangel_Main: "Baltic",
   Desert_Main: "Desert",
   Savage_Main: "Savage",
   DihorOtok_Main: "DihorOtok",
-  Baltic_Main: "DihorOtok",
   Summerland_Main: "Summerland",
   Chimera_Main: "Chimera",
   Tiger_Main: "Tiger",
@@ -70,28 +70,117 @@ const PRIMARY_WEAPON_KEYS = [
 ] as const;
 
 const WEAPON_NAME_OVERRIDES: Record<string, string> = {
+  ACE32: "ACE32",
+  AK47: "AKM",
   AKM: "AKM",
   AUG: "AUG",
   BerylM762: "Beryl M762",
   BIZONPP19: "PP-19 Bizon",
+  BizonPP19: "PP-19 Bizon",
   DP28: "DP-28",
+  Dragunov: "Dragunov",
   G36C: "G36C",
   Kar98k: "Kar98k",
   M16A4: "M16A4",
   M249: "M249",
   M416: "M416",
+  HK416: "M416",
+  MG3: "MG3",
   Mini14: "Mini 14",
   MK12: "Mk12",
   MK14: "Mk14",
+  Mk47Mutant: "Mk47 Mutant",
   MosinNagant: "Mosin Nagant",
+  Mosin: "Mosin Nagant",
   QBU88: "QBU",
   QBZ95: "QBZ",
   SKS: "SKS",
   SLR: "SLR",
+  FNFal: "SLR",
   UMP45: "UMP45",
+  UMP: "UMP45",
   VSS: "VSS",
   Win94: "Win94",
+  Win1894: "Win94",
+  Thompson: "Tommy Gun",
+  TommyGun: "Tommy Gun",
+  UZI: "Micro UZI",
+  MicroUZI: "Micro UZI",
+  Vector: "Vector",
+  Saiga12: "S12K",
+  Berreta686: "S686",
+  Winchester: "S1897",
+  DP12: "DBS",
+  OriginS12: "O12",
+  PanzerFaust100M: "Panzerfaust",
+  L6: "Lynx AMR",
+  Crossbow: "Crossbow",
+  MP5K: "MP5K",
+  P90: "P90",
+  MP9: "MP9",
 };
+
+const WEAPON_IMAGE_MAP: Record<string, string> = {
+  "M416": "Item_Weapon_HK416_C.png",
+  "AKM": "Item_Weapon_AK47_C.png",
+  "Beryl M762": "Item_Weapon_BerylM762_C.png",
+  "SCAR-L": "Item_Weapon_SCAR-L_C.png",
+  "M16A4": "Item_Weapon_M16A4_C.png",
+  "Mutant": "Item_Weapon_Mk47Mutant_C.png",
+  "Mk47 Mutant": "Item_Weapon_Mk47Mutant_C.png",
+  "G36C": "Item_Weapon_G36C_C.png",
+  "QBZ": "Item_Weapon_QBZ95_C.png",
+  "K2": "Item_Weapon_K2_C.png",
+  "AUG": "Item_Weapon_AUG_C.png",
+  "Groza": "Item_Weapon_Groza_C.png",
+  "FAMAS": "Item_Weapon_FAMASG2_C.png",
+  "ACE32": "Item_Weapon_ACE32_C.png",
+  "Kar98k": "Item_Weapon_Kar98k_C.png",
+  "M24": "Item_Weapon_M24_C.png",
+  "AWM": "Item_Weapon_AWM_C.png",
+  "Mosin Nagant": "Item_Weapon_Mosin_C.png",
+  "Win94": "Item_Weapon_Win1894_C.png",
+  "Lynx AMR": "Item_Weapon_L6_C.png",
+  "SKS": "Item_Weapon_SKS_C.png",
+  "SLR": "Item_Weapon_FNFal_C.png",
+  "Mini 14": "Item_Weapon_Mini14_C.png",
+  "Mk12": "Item_Weapon_Mk12_C.png",
+  "Mk14": "Item_Weapon_Mk14_C.png",
+  "QBU": "Item_Weapon_QBU88_C.png",
+  "VSS": "Item_Weapon_VSS_C.png",
+  "Dragunov": "Item_Weapon_Dragunov_C.png",
+  "UMP45": "Item_Weapon_UMP_C.png",
+  "Vector": "Item_Weapon_Vector_C.png",
+  "Micro UZI": "Item_Weapon_UZI_C.png",
+  "UZI": "Item_Weapon_UZI_C.png",
+  "Tommy Gun": "Item_Weapon_Thompson_C.png",
+  "Bizon": "Item_Weapon_BizonPP19_C.png",
+  "PP-19 Bizon": "Item_Weapon_BizonPP19_C.png",
+  "MP5K": "Item_Weapon_MP5K_C.png",
+  "P90": "Item_Weapon_P90_C.png",
+  "MP9": "Item_Weapon_MP9_C.png",
+  "S1897": "Item_Weapon_Winchester_C.png",
+  "S686": "Item_Weapon_Berreta686_C.png",
+  "S12K": "Item_Weapon_Saiga12_C.png",
+  "DBS": "Item_Weapon_DP12_C.png",
+  "O12": "Item_Weapon_OriginS12_C.png",
+  "M249": "Item_Weapon_M249_C.png",
+  "MG3": "Item_Weapon_MG3_C.png",
+  "DP-28": "Item_Weapon_DP28_C.png",
+  "Crossbow": "Item_Weapon_Crossbow_C.png",
+  "Panzerfaust": "Item_Weapon_PanzerFaust100M_C.png",
+};
+
+export function getWeaponImage(weaponName: string): string {
+  const fileName = WEAPON_IMAGE_MAP[weaponName] || `Item_Weapon_${weaponName.replace(/ /g, "")}_C.png`;
+  return `https://raw.githubusercontent.com/pubg/api-assets/master/Assets/Icons/Item/Weapon/${fileName}`;
+}
+
+export function getWeaponDetailImage(weaponName: string): string {
+  const fileName = WEAPON_IMAGE_MAP[weaponName] || `Item_Weapon_${weaponName.replace(/ /g, "")}_C.png`;
+  const detailFileName = fileName.replace(".png", "_h.png");
+  return `/images/weapons_detail/${detailFileName}`;
+}
 
 export function safeNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
@@ -117,9 +206,9 @@ export function normalizeQueueType(rawMatchType: string): MatchSummary["queueTyp
 }
 
 export function formatQueueLabel(queueType: MatchSummary["queueType"]): string {
-  if (queueType === "normal") return "일반전";
-  if (queueType === "competitive") return "경쟁전";
-  return "기타";
+  if (queueType === "normal") return "\uc77c\ubc18\uc804";
+  if (queueType === "competitive") return "\uacbd\uc7c1\uc804";
+  return "\uae30\ud0c0";
 }
 
 export function isQueueMatch(queueType: MatchSummary["queueType"], filter: MatchQueueFilter): boolean {
@@ -259,16 +348,17 @@ export function formatMapName(raw: string): string {
   if (MAP_LABELS[raw]) return MAP_LABELS[raw];
 
   const key = raw.toLowerCase();
-  if (key.includes("erangel")) return "에란겔";
+  if (key.includes("baltic") || key.includes("erangel")) return "에란겔";
   if (key.includes("desert")) return "미라마";
   if (key.includes("savage")) return "사녹";
   if (key.includes("vikendi") || key.includes("dihor")) return "비켄디";
-  if (key.includes("kiki")) return "데스톤";
+  if (key.includes("kiki")) return "데스턴";
   if (key.includes("neon")) return "론도";
   if (key.includes("tiger")) return "태이고";
   if (key.includes("summer")) return "카라킨";
   if (key.includes("chimera")) return "파라모";
   if (key.includes("heaven")) return "헤이븐";
+  if (key.includes("range")) return "연습장";
   return raw;
 }
 
@@ -643,89 +733,136 @@ export function parseMatchIds(player: PlayerEntity | null): string[] {
     .filter((id): id is string => Boolean(id));
 }
 
-export function getTierFromRp(rp: number): TierInfo {
+export function getTierInfo(
+  rp: number,
+  server?: string | null,
+  rank?: number | string | null
+): TierInfo {
   if (!Number.isFinite(rp) || rp <= 0) {
     return {
-      name: "언랭크",
+      name: "Unranked",
       color: "text-zinc-300",
       border: "border-zinc-400",
       colorHex: "#a1a1aa",
-      imageUrl: "/ranks/unranked.jpg",
+      imageUrl: "/images/tiers/Unranked.png",
+      imagePath: "/images/tiers/Unranked.png",
     };
   }
 
-  if (rp < 1500) {
+  if (rp < 1400) {
     return {
-      name: "브론즈",
-      color: "text-amber-600",
-      border: "border-amber-600",
-      colorHex: "#d97706",
-      imageUrl: "/ranks/bronze.jpg",
+      name: "Bronze",
+      color: "text-[#CD7F32]",
+      border: "border-[#CD7F32]",
+      colorHex: "#CD7F32",
+      imageUrl: "/images/tiers/Bronze-1.png",
+      imagePath: "/images/tiers/Bronze-1.png",
     };
   }
-  if (rp < 2000) {
+
+  if (rp < 1800) {
     return {
-      name: "실버",
-      color: "text-slate-300",
-      border: "border-slate-300",
-      colorHex: "#cbd5e1",
-      imageUrl: "/ranks/silver.jpg",
+      name: "Silver",
+      color: "text-[#C0C0C0]",
+      border: "border-[#C0C0C0]",
+      colorHex: "#C0C0C0",
+      imageUrl: "/images/tiers/Silver-1.png",
+      imagePath: "/images/tiers/Silver-1.png",
     };
   }
-  if (rp < 2500) {
+
+  if (rp < 2200) {
     return {
-      name: "골드",
-      color: "text-yellow-400",
-      border: "border-yellow-400",
-      colorHex: "#facc15",
-      imageUrl: "/ranks/gold.jpg",
+      name: "Gold",
+      color: "text-[#FFD700]",
+      border: "border-[#FFD700]",
+      colorHex: "#FFD700",
+      imageUrl: "/images/tiers/Gold-1.png",
+      imagePath: "/images/tiers/Gold-1.png",
     };
   }
+
+  if (rp < 2600) {
+    return {
+      name: "Platinum",
+      color: "text-[#00E5FF]",
+      border: "border-[#00E5FF]",
+      colorHex: "#00E5FF",
+      imageUrl: "/images/tiers/Platinum-1.png",
+      imagePath: "/images/tiers/Platinum-1.png",
+    };
+  }
+
   if (rp < 3000) {
     return {
-      name: "플레티넘",
-      color: "text-cyan-400",
-      border: "border-cyan-400",
-      colorHex: "#22d3ee",
-      imageUrl: "/ranks/platinum.jpg",
+      name: "Crystal",
+      color: "text-[#E0B0FF]",
+      border: "border-[#E0B0FF]",
+      colorHex: "#E0B0FF",
+      imageUrl: "/images/tiers/Crystal.png",
+      imagePath: "/images/tiers/Crystal.png",
     };
   }
+
   if (rp < 3400) {
     return {
-      name: "크리스탈",
-      color: "text-sky-300",
-      border: "border-sky-300",
-      colorHex: "#7dd3fc",
-      imageUrl: "/ranks/crystal.jpg",
+      name: "Diamond",
+      color: "text-[#60A5FA]",
+      border: "border-[#60A5FA]",
+      colorHex: "#60A5FA",
+      imageUrl: "/images/tiers/Diamond-1.png",
+      imagePath: "/images/tiers/Diamond-1.png",
     };
   }
-  if (rp < 3800) {
-    return {
-      name: "다이아몬드",
-      color: "text-blue-400",
-      border: "border-blue-400",
-      colorHex: "#60a5fa",
-      imageUrl: "/ranks/diamond.jpg",
-    };
+
+  if (rp >= 3700) {
+    const parsedRank = Number(rank);
+    if (!Number.isNaN(parsedRank) && parsedRank > 0) {
+      const normalizedServer = server?.trim().toLowerCase() ?? "";
+
+      let survivorCutoff = 200;
+      if (normalizedServer.includes("kakao")) {
+        survivorCutoff = 50;
+      } else if (normalizedServer.includes("sea")) {
+        survivorCutoff = 100;
+      } else if (normalizedServer.includes("eu") || normalizedServer.includes("ru")) {
+        survivorCutoff = 50;
+      } else if (normalizedServer.includes("na") || normalizedServer.includes("sa")) {
+        survivorCutoff = 5;
+      } else if (normalizedServer.includes("as") || normalizedServer.includes("steam")) {
+        survivorCutoff = 200;
+      }
+
+      if (parsedRank <= survivorCutoff) {
+        return {
+          name: "Survivor",
+          color: "text-[#fb7185]",
+          border: "border-[#fb7185]",
+          colorHex: "#fb7185",
+          imageUrl: "/images/tiers/서바이버.png",
+          imagePath: "/images/tiers/서바이버.png",
+        };
+      }
+    }
   }
-  if (rp < 4300) {
-    return {
-      name: "마스터",
-      color: "text-purple-400",
-      border: "border-purple-400",
-      colorHex: "#c084fc",
-      imageUrl: "/ranks/master.jpg",
-    };
-  }
+
   return {
-    name: "서바이버",
-    color: "text-rose-400",
-    border: "border-rose-400",
-    colorHex: "#fb7185",
-    imageUrl: "/ranks/survivor.png",
+    name: "Master",
+    color: "text-[#FF4081]",
+    border: "border-[#FF4081]",
+    colorHex: "#FF4081",
+    imageUrl: "/images/tiers/Master.png",
+    imagePath: "/images/tiers/Master.png",
   };
 }
 
+export function getTierFromRp(
+  rp: number,
+  server?: string | null,
+  rank?: number | string | null
+): TierInfo {
+  return getTierInfo(rp, server, rank);
+}
 export function normalizeLeaderboardEntries(data: LeaderboardResponse | null, limit: number): LeaderboardEntry[] {
   if (!data?.included?.length) return [];
 
@@ -826,3 +963,5 @@ export function toProParticipantRow(item: NonNullable<MatchResponse["included"]>
     deathType: typeof statsRecord.deathType === "string" ? statsRecord.deathType : "",
   };
 }
+
+

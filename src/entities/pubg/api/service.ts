@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 
 import type {
   CurrentSeasonInfo,
@@ -18,6 +18,7 @@ import type {
   MatchResponse,
   MatchSummary,
   MatchTeammateSummary,
+  ModeStatsSummary,
   PlayerData,
   PlayerEntity,
   ProLeaderboardPlayerEntry,
@@ -31,6 +32,7 @@ import type {
   PubgPlatformShard,
   PubgStats,
   RankedStats,
+  RankedModeStatsSummary,
   RankedStatsResponse,
   SeasonItem,
   SeasonOption,
@@ -40,6 +42,7 @@ import type {
   TournamentListResponse,
   TournamentSummaryResponse,
   UnknownRecord,
+  WeaponMasteryProfile,
 } from "@/entities/pubg/types";
 import {
   buildSeasonLabel,
@@ -64,6 +67,7 @@ import {
   normalizeBlueZoneStates,
   normalizeLeaderboardEntries,
   normalizeQueueType,
+  normalizeWeaponName,
   parseMatchIds,
   parseTimestamp,
   isSameActor,
@@ -97,6 +101,7 @@ export type {
   MatchSummary,
   MatchFetchResult,
   MatchTeammateSummary,
+  ModeStatsSummary,
   PlayerData,
   ProLeaderboardPlayerEntry,
   ProLeaderboardSnapshot,
@@ -105,8 +110,10 @@ export type {
   PubgPlatformShard,
   PubgStats,
   RankedStats,
+  RankedModeStatsSummary,
   SeasonOption,
   TierInfo,
+  WeaponMasteryProfile,
 } from "@/entities/pubg/types";
 
 const STEAM_API_KEY = process.env.PUBG_API_KEY?.trim() || "";
@@ -143,24 +150,34 @@ const PUBG_FETCH_RETRY_BASE_MS = Math.min(
   5000,
   Math.max(150, Number.parseInt(process.env.PUBG_FETCH_RETRY_BASE_MS ?? "500", 10) || 500)
 );
-const PUBG_MATCH_FETCH_CONCURRENCY = Math.min(
-  8,
-  Math.max(1, Number.parseInt(process.env.PUBG_MATCH_FETCH_CONCURRENCY ?? "3", 10) || 3)
-);
-const PUBG_MATCH_FETCH_CHUNK_SIZE = Math.min(
-  3,
-  Math.max(1, Number.parseInt(process.env.PUBG_MATCH_FETCH_CHUNK_SIZE ?? "3", 10) || 3)
-);
-const PUBG_MATCH_FETCH_THROTTLE_MS = Math.min(
-  4000,
-  Math.max(0, Number.parseInt(process.env.PUBG_MATCH_FETCH_THROTTLE_MS ?? "1000", 10) || 1000)
-);
 const PUBG_MATCH_FETCH_HARD_CAP = Math.min(
   240,
   Math.max(30, Number.parseInt(process.env.PUBG_MATCH_FETCH_HARD_CAP ?? "120", 10) || 120)
 );
 const PUBG_API_QUOTA_EXCEEDED_ERROR = "PUBG_API_QUOTA_EXCEEDED";
 const PUBG_API_KEY_MISSING_ERROR = "API Key Missing";
+
+interface WeaponMasteryStatNode {
+  Kills?: number;
+  HeadShots?: number;
+  DamagePlayer?: number;
+  LongestDefeat?: number;
+  LongestKill?: number;
+}
+
+interface WeaponMasterySummaryNode {
+  StatsTotal?: WeaponMasteryStatNode;
+  OfficialStatsTotal?: WeaponMasteryStatNode;
+  CompetitiveStatsTotal?: WeaponMasteryStatNode;
+}
+
+interface WeaponMasteryResponse {
+  data?: {
+    attributes?: {
+      weaponSummaries?: Record<string, WeaponMasterySummaryNode>;
+    };
+  };
+}
 
 
 export function isPubgApiQuotaExceededError(error: unknown): boolean {
@@ -363,14 +380,12 @@ async function getCurrentSeasonId(
 
 export async function getSeasonOptions(
   shard: PubgPlatformShard = DEFAULT_PLATFORM_SHARD,
-  limit = 10,
   forceRefresh = false
 ): Promise<SeasonOption[]> {
   try {
     const seasonItems = await getSeasonItems(shard, forceRefresh);
     if (seasonItems.length === 0) return [];
 
-    const safeLimit = Math.min(Math.max(limit, 1), 40);
     const mapped = seasonItems.map((season) => {
       const seasonNumber = extractSeasonNumber(season.id);
       return {
@@ -381,16 +396,25 @@ export async function getSeasonOptions(
       };
     });
 
-    return mapped
-      .filter((season) => season.seasonNumber !== null && season.seasonNumber >= 3 && season.seasonNumber <= 40)
+    const uniqueSeasonsMap = new Map<number, SeasonOption>();
+    
+    for (const season of mapped) {
+      if (season.seasonNumber === null) continue;
+      
+      const existing = uniqueSeasonsMap.get(season.seasonNumber);
+      if (!existing || season.isCurrent) {
+        uniqueSeasonsMap.set(season.seasonNumber, season);
+      }
+    }
+
+    return Array.from(uniqueSeasonsMap.values())
       .sort((a, b) => {
         const aNumber = a.seasonNumber ?? -1;
         const bNumber = b.seasonNumber ?? -1;
         if (aNumber !== bNumber) return bNumber - aNumber;
         if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1;
         return b.seasonId.localeCompare(a.seasonId);
-      })
-      .slice(0, safeLimit);
+      });
   } catch (error) {
     console.error("Failed to fetch season options:", error);
     return [];
@@ -414,6 +438,104 @@ export async function getCurrentSeasonInfo(
     console.error("Failed to fetch current season info:", error);
     return null;
   }
+}
+
+function extractWeaponMasteryKills(summary: WeaponMasterySummaryNode | undefined): number {
+  if (!summary) return 0;
+  return Math.max(
+    safeNumber(summary.StatsTotal?.Kills),
+    safeNumber(summary.OfficialStatsTotal?.Kills),
+    safeNumber(summary.CompetitiveStatsTotal?.Kills)
+  );
+}
+
+function buildModeStatsSummary(mode: string, stats: UnknownRecord): ModeStatsSummary | null {
+  const matches = safeNumber(stats.roundsPlayed);
+  if (matches <= 0) return null;
+
+  const kills = safeNumber(stats.kills);
+  const assists = safeNumber(stats.assists);
+  const wins = safeNumber(stats.wins);
+  const top10s = safeNumber(stats.top10s);
+  const headshots = safeNumber(stats.headshotKills);
+  const damage = safeNumber(stats.damageDealt);
+  const deaths = Math.max(
+    1,
+    safeNumber(stats.deaths) || safeNumber(stats.losses) || Math.max(0, matches - wins)
+  );
+
+  return {
+    mode,
+    modeLabel: formatModeLabel(mode),
+    matches,
+    wins,
+    top10s,
+    kills,
+    assists,
+    headshots,
+    avgDamage: Math.round(damage / Math.max(1, matches)),
+    kda: ((kills + assists) / Math.max(1, deaths)).toFixed(2),
+    winRate: toPercent(wins, matches),
+    top10Rate: toPercent(top10s, matches),
+    headshotRate: toPercent(headshots, Math.max(1, kills)),
+  };
+}
+
+function buildRankedModeStatsSummary(
+  mode: string,
+  stats: UnknownRecord,
+  server?: string,
+  leaderboardRank?: number
+): RankedModeStatsSummary | null {
+  const baseSummary = buildModeStatsSummary(mode, stats);
+  if (!baseSummary) return null;
+
+  const rp = Math.round(safeNumber(stats.currentRankPoint));
+  const bestRp = Math.round(safeNumber(stats.bestRankPoint));
+  const computedTier = getTierFromRp(rp, server, leaderboardRank);
+
+  const rawSubTier = typeof stats.subTier === "string" ? stats.subTier : null;
+  let finalName = computedTier.name;
+
+  if (computedTier.name !== "마스터" && computedTier.name !== "서바이버" && computedTier.name !== "언랭크") {
+    if (rawSubTier && Number(rawSubTier) > 0) {
+      finalName = `${computedTier.name} ${rawSubTier}`;
+    }
+  }
+
+  return {
+    ...baseSummary,
+    rp,
+    bestRp,
+    tier: { ...computedTier, name: finalName },
+    rank: leaderboardRank,
+  };
+}
+
+function pickHighestRankedMode(
+  rankedModeStats: Record<string, UnknownRecord> | undefined
+): { mode: string; stats: UnknownRecord } | null {
+  if (!rankedModeStats) return null;
+
+  const entries = Object.entries(rankedModeStats).filter(([, stats]) => safeNumber(stats.roundsPlayed) > 0);
+  if (entries.length === 0) return null;
+
+  entries.sort((a, b) => {
+    const currentRpA = Math.round(safeNumber(a[1].currentRankPoint));
+    const currentRpB = Math.round(safeNumber(b[1].currentRankPoint));
+    if (currentRpA !== currentRpB) return currentRpB - currentRpA;
+
+    const bestRpA = Math.round(safeNumber(a[1].bestRankPoint));
+    const bestRpB = Math.round(safeNumber(b[1].bestRankPoint));
+    if (bestRpA !== bestRpB) return bestRpB - bestRpA;
+
+    const roundsA = safeNumber(a[1].roundsPlayed);
+    const roundsB = safeNumber(b[1].roundsPlayed);
+    return roundsB - roundsA;
+  });
+
+  const [mode, stats] = entries[0];
+  return { mode, stats };
 }
 
 export async function getPlayer(
@@ -497,6 +619,85 @@ export async function getPlayerById(
   }
 }
 
+export async function getPlayerMainWeapon(
+  accountId: string,
+  shard: PubgPlatformShard = DEFAULT_PLATFORM_SHARD,
+  forceRefresh = false
+): Promise<string | null> {
+  const profile = await getPlayerWeaponMasteryProfile(accountId, shard, forceRefresh);
+  return profile?.mainWeapon ?? null;
+}
+
+export async function getPlayerWeaponMasteryProfile(
+  accountId: string,
+  shard: PubgPlatformShard = DEFAULT_PLATFORM_SHARD,
+  forceRefresh = false
+): Promise<WeaponMasteryProfile | null> {
+  try {
+    const safeAccountId = accountId.trim();
+    if (!safeAccountId) return null;
+
+    const masteryData = await fetchPubg<WeaponMasteryResponse>(
+      `/players/${safeAccountId}/weapon_mastery`,
+      forceRefresh ? 0 : 900,
+      shard
+    );
+    const weaponSummaries = masteryData?.data?.attributes?.weaponSummaries;
+    if (!weaponSummaries) return null;
+
+    const normalizedWeapons = Object.entries(weaponSummaries)
+      .map(([weaponId, summary]) => {
+        const official = summary.OfficialStatsTotal || summary.StatsTotal || {};
+        const competitive = summary.CompetitiveStatsTotal || {};
+        
+        const officialKills = official.Kills || 0;
+        const competitiveKills = competitive.Kills || 0;
+        const totalKills = officialKills + competitiveKills;
+
+        return {
+          weapon: normalizeWeaponName(weaponId),
+          official: {
+            kills: officialKills,
+            headShots: official.HeadShots || 0,
+            damagePlayer: official.DamagePlayer || 0,
+            longestDefeat: official.LongestDefeat || official.LongestKill || 0,
+          },
+          competitive: {
+            kills: competitiveKills,
+            headShots: competitive.HeadShots || 0,
+            damagePlayer: competitive.DamagePlayer || 0,
+            longestDefeat: competitive.LongestDefeat || competitive.LongestKill || 0,
+          },
+          kills: totalKills,
+          headShots: (official.HeadShots || 0) + (competitive.HeadShots || 0),
+          damagePlayer: (official.DamagePlayer || 0) + (competitive.DamagePlayer || 0),
+          longestDefeat: Math.max(official.LongestDefeat || official.LongestKill || 0, competitive.LongestDefeat || competitive.LongestKill || 0),
+        };
+      })
+      .filter((entry) => entry.weapon !== "-" && entry.kills > 0)
+      .sort((a, b) => b.kills - a.kills);
+
+    if (normalizedWeapons.length === 0) return null;
+
+    const topWeapon = normalizedWeapons[0];
+    const totalKills = normalizedWeapons.reduce((sum, entry) => sum + entry.kills, 0);
+
+    return {
+      mainWeapon: topWeapon?.weapon ?? null,
+      totalKills,
+      topWeaponKills: topWeapon?.kills ?? 0,
+      trackedWeapons: normalizedWeapons.length,
+      weapons: normalizedWeapons,
+    };
+  } catch (error) {
+    if (isPubgApiQuotaExceededError(error) || isPubgApiKeyMissingError(error)) {
+      throw error;
+    }
+    console.error("Failed to fetch player weapon mastery profile:", error);
+    return null;
+  }
+}
+
 export async function getPlayerStats(
   accountId: string,
   shard: PubgPlatformShard = DEFAULT_PLATFORM_SHARD,
@@ -513,9 +714,16 @@ export async function getPlayerStats(
       ttl,
       shard
     );
-    if (!statsData?.data?.attributes?.gameModeStats) return null;
+    const gameModeStats = statsData?.data?.attributes?.gameModeStats;
+    if (!gameModeStats) return null;
 
-    const selectedMode = pickPrimaryMode(statsData.data.attributes.gameModeStats);
+    const modeStats = Object.fromEntries(
+      Object.entries(gameModeStats)
+        .map(([modeKey, modeValue]) => [modeKey, buildModeStatsSummary(modeKey, modeValue)])
+        .filter((entry): entry is [string, ModeStatsSummary] => Boolean(entry[1]))
+    );
+
+    const selectedMode = pickPrimaryMode(gameModeStats);
     if (!selectedMode) return null;
 
     const { mode, stats } = selectedMode;
@@ -555,6 +763,7 @@ export async function getPlayerStats(
         avgDamage,
         winRate,
       },
+      modeStats,
       radar: [
         {
           subject: "전투",
@@ -703,11 +912,6 @@ async function mapWithConcurrency<T, R>(
 
   await Promise.all(Array.from({ length: safeConcurrency }, () => consume()));
   return results;
-}
-
-async function delay(ms: number): Promise<void> {
-  if (!Number.isFinite(ms) || ms <= 0) return;
-  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function normalizeSearchName(value: string): string {
@@ -1264,23 +1468,28 @@ export async function getMatchesWithMeta(
     let latestIds: string[] = [];
     let quotaLimited = false;
 
-    const playerRes = await fetchPubg<JsonApiObject<PlayerEntity> | JsonApiList<PlayerEntity>>(
-      `/players/${accountId}`,
-      forceRefresh ? 0 : shard === "kakao" ? 20 : 60,
-      shard
-    );
-    if (playerRes) {
-      const player = Array.isArray((playerRes as JsonApiList<PlayerEntity>).data)
-        ? (playerRes as JsonApiList<PlayerEntity>).data[0]
-        : (playerRes as JsonApiObject<PlayerEntity>).data;
-      latestIds = parseMatchIds(player);
+    if (initialIds.length > 0) {
+      latestIds = initialIds;
+    } else {
+      const playerRes = await fetchPubg<JsonApiObject<PlayerEntity> | JsonApiList<PlayerEntity>>(
+        `/players/${accountId}`,
+        forceRefresh ? 0 : shard === "kakao" ? 20 : 60,
+        shard
+      );
+      if (playerRes) {
+        const player = Array.isArray((playerRes as JsonApiList<PlayerEntity>).data)
+          ? (playerRes as JsonApiList<PlayerEntity>).data[0]
+          : (playerRes as JsonApiObject<PlayerEntity>).data;
+        latestIds = parseMatchIds(player);
+      }
     }
 
     const merged = [...latestIds, ...initialIds];
     const deduplicatedIds = Array.from(new Set(merged));
-    const rawFetchLimitBase =
-      queueFilter === "all" ? safeLimit : Math.min(PUBG_MATCH_FETCH_HARD_CAP, Math.max(safeLimit * 3, 90));
-    const rawFetchLimit = Math.min(PUBG_MATCH_FETCH_HARD_CAP, Math.max(30, rawFetchLimitBase));
+    const rawFetchLimit =
+      queueFilter === "all"
+        ? safeLimit
+        : Math.min(PUBG_MATCH_FETCH_HARD_CAP, Math.max(safeLimit * 2, safeLimit));
     const matchIds = deduplicatedIds.slice(0, rawFetchLimit);
 
     if (matchIds.length === 0) {
@@ -1456,49 +1665,29 @@ export async function getMatchesWithMeta(
       };
     };
 
-    const chunkSize = Math.max(1, Math.min(PUBG_MATCH_FETCH_CONCURRENCY, PUBG_MATCH_FETCH_CHUNK_SIZE));
-    const matches: Array<MatchSummary | null> = [];
-
-    for (let start = 0; start < matchIds.length; start += chunkSize) {
-      const chunk = matchIds.slice(start, start + chunkSize);
-      const chunkResults = await Promise.all(
-        chunk.map(async (matchId): Promise<MatchSummary | null> => {
-          try {
-            return await fetchSingleMatch(matchId);
-          } catch (error) {
-            if (isPubgApiQuotaExceededError(error)) {
-              quotaLimited = true;
-              return null;
-            }
-            if (isPubgApiKeyMissingError(error)) {
-              throw error;
-            }
-            console.error("Failed to fetch match summary:", matchId, error);
+    const matchResults = await Promise.all(
+      matchIds.map(async (matchId): Promise<MatchSummary | null> => {
+        try {
+          return await fetchSingleMatch(matchId);
+        } catch (error) {
+          if (isPubgApiQuotaExceededError(error)) {
+            quotaLimited = true;
             return null;
           }
-        })
-      );
-
-      matches.push(...chunkResults);
-
-      if (queueFilter === "all") {
-        const matchedCount = matches.filter((match): match is MatchSummary => Boolean(match)).length;
-        if (matchedCount >= safeLimit) {
-          break;
+          if (isPubgApiKeyMissingError(error)) {
+            throw error;
+          }
+          console.error("Failed to fetch match summary:", matchId, error);
+          return null;
         }
-      }
+      })
+    );
 
-      if (quotaLimited) {
-        console.warn("PUBG API quota limited while fetching matches. Returning partial match list.");
-        break;
-      }
-
-      if (start + chunkSize < matchIds.length) {
-        await delay(PUBG_MATCH_FETCH_THROTTLE_MS);
-      }
+    if (quotaLimited) {
+      console.warn("PUBG API quota limited while fetching matches. Returning partial match list.");
     }
 
-    const resolvedMatches = matches
+    const resolvedMatches = matchResults
       .filter((match): match is MatchSummary => match !== null)
       .sort((a, b) => {
         const timeA = Date.parse(a.createdAt);
@@ -1775,9 +1964,52 @@ export async function getRankedStats(
       ttl,
       shard
     );
-    if (!rankedRes?.data?.attributes?.rankedGameModeStats) return null;
+    const rankedGameModeStats = rankedRes?.data?.attributes?.rankedGameModeStats;
+    if (!rankedGameModeStats) return null;
 
-    const selectedMode = pickPrimaryMode(rankedRes.data.attributes.rankedGameModeStats);
+    let highestRpMode = pickHighestRankedMode(rankedGameModeStats);
+    let leaderboardRank: number | undefined;
+
+    if (highestRpMode) {
+      const rp = Math.round(safeNumber(highestRpMode.stats.currentRankPoint));
+      if (rp >= 3700) {
+        try {
+          // Verify leaderboard standing for Survivor logic
+          const leaderboardSnapshot = await getLeaderboardSnapshot(
+            highestRpMode.mode,
+            500, // Fetch top 500 to cover all possible Survivor cutoffs
+            shard,
+            forceRefresh
+          );
+          
+          const playerEntry = leaderboardSnapshot.entries.find(
+            (entry) => entry.accountId === accountId
+          );
+          
+          if (playerEntry && playerEntry.rank > 0) {
+            leaderboardRank = playerEntry.rank;
+          }
+        } catch (e) {
+          console.error("Failed to fetch leaderboard block for Survivor check", e);
+        }
+      }
+    }
+
+    const modeStats = Object.fromEntries(
+      Object.entries(rankedGameModeStats)
+        .map(([modeKey, modeValue]) => [
+          modeKey,
+          buildRankedModeStatsSummary(
+            modeKey,
+            modeValue,
+            shard,
+            highestRpMode?.mode === modeKey ? leaderboardRank : undefined
+          ),
+        ])
+        .filter((entry): entry is [string, RankedModeStatsSummary] => Boolean(entry[1]))
+    );
+
+    const selectedMode = pickHighestRankedMode(rankedGameModeStats);
     if (!selectedMode) return null;
 
     const { mode, stats } = selectedMode;
@@ -1795,7 +2027,7 @@ export async function getRankedStats(
     return {
       rp,
       bestRp,
-      tier: getTierFromRp(rp),
+      tier: getTierFromRp(rp, shard, leaderboardRank),
       matches,
       wins,
       kda: ((kills + assists) / Math.max(1, deaths)).toFixed(2),
@@ -1803,6 +2035,7 @@ export async function getRankedStats(
       winRate: toPercent(wins, matches),
       mode,
       modeLabel: formatModeLabel(mode),
+      modeStats,
     };
   } catch (error) {
     console.error("Error fetching ranked stats:", error);

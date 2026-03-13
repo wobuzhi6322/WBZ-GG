@@ -71,7 +71,7 @@ export default function TierProgressGraph({ matches, tierName, currentRp }: Tier
 
   if (competitiveMatches.length === 0) {
     return (
-      <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark-surface p-4">
+      <div className="rounded-3xl border border-gray-200/80 bg-white/95 p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.38)] transition-transform duration-300 hover:-translate-y-0.5 dark:border-white/10 dark:bg-zinc-800/90 dark:shadow-[0_28px_90px_-52px_rgba(251,191,36,0.1)]">
         <div className="text-xs text-wbz-mute">{labels.title}</div>
         <div className="mt-2 text-sm font-bold text-gray-900 dark:text-white">{tierName ?? labels.unranked}</div>
         <div className="text-[11px] text-wbz-mute mt-1">{labels.noData}</div>
@@ -102,7 +102,7 @@ export default function TierProgressGraph({ matches, tierName, currentRp }: Tier
   const deltaText = `${totalDelta > 0 ? "+" : ""}${totalDelta}`;
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark-surface p-4">
+    <div className="rounded-3xl border border-gray-200/80 bg-white/95 p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.38)] transition-transform duration-300 hover:-translate-y-0.5 dark:border-white/10 dark:bg-zinc-800/90 dark:shadow-[0_28px_90px_-52px_rgba(251,191,36,0.1)]">
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="text-xs text-wbz-mute">{labels.title}</div>
@@ -114,7 +114,7 @@ export default function TierProgressGraph({ matches, tierName, currentRp }: Tier
         </div>
       </div>
 
-      <div className="mt-3 h-28 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 px-2 py-2">
+      <div className="mt-4 h-32 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-100/80 px-3 py-3 dark:bg-black/30">
         <svg viewBox="0 0 100 100" className="w-full h-full">
           <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(148,163,184,0.45)" strokeDasharray="2 2" />
           <polyline
@@ -146,4 +146,3 @@ export default function TierProgressGraph({ matches, tierName, currentRp }: Tier
     </div>
   );
 }
-

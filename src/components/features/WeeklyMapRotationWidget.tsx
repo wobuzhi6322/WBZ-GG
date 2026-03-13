@@ -1,140 +1,118 @@
-"use client";
+﻿"use client";
 
 import { useLanguage } from "@/context/LanguageContext";
 
-interface WeeklyMapRotationMap {
-  name: string;
+interface RotationMapCard {
+  id: string;
+  nameKey: "erangel" | "taego" | "miramar" | "paramo" | "rondo";
   imageUrl: string;
 }
 
-interface WeeklyMapRotationItem {
-  weekLabel: string;
-  period: string;
-  status: "current" | "next";
-  maps: WeeklyMapRotationMap[];
+interface RotationSection {
+  titleKey: "normalMatch" | "rankedMatch";
+  subtitleKey: "normalSubtitle" | "rankedSubtitle";
+  tone: "primary" | "secondary";
+  maps: RotationMapCard[];
 }
 
-const WEEKLY_MAP_ROTATION: WeeklyMapRotationItem[] = [
-  {
-    weekLabel: "4주 차",
-    period: "2.25 ~ 3.3",
-    status: "current",
-    maps: [
-      { name: "에란겔", imageUrl: "/maps/rotation/erangel.webp" },
-      { name: "미라마", imageUrl: "/maps/rotation/miramar.webp" },
-      { name: "태이고", imageUrl: "https://wstatic-prod.pubg.com/web/live/main_7e1f0ba/img/19581ee.webp" },
-      { name: "비켄디", imageUrl: "/maps/rotation/vikendi.webp" },
-      { name: "사녹", imageUrl: "https://battlegrounds.party/map/map/Savage/tiles/0/0/0.webp" },
-    ],
-  },
-  {
-    weekLabel: "5주 차",
-    period: "3.4 ~ 3.10",
-    status: "next",
-    maps: [
-      { name: "에란겔", imageUrl: "/maps/rotation/erangel.webp" },
-      { name: "태이고", imageUrl: "https://wstatic-prod.pubg.com/web/live/main_7e1f0ba/img/19581ee.webp" },
-      { name: "미라마", imageUrl: "/maps/rotation/miramar.webp" },
-      { name: "비켄디", imageUrl: "/maps/rotation/vikendi.webp" },
-      { name: "데스턴", imageUrl: "/maps/rotation/deston.webp" },
-    ],
-  },
-];
+const NORMAL_MATCH_ROTATION: RotationSection = {
+  titleKey: "normalMatch",
+  subtitleKey: "normalSubtitle",
+  tone: "primary",
+  maps: [
+    { id: "erangel", nameKey: "erangel", imageUrl: "/maps/rotation/erangel.webp" },
+    { id: "taego", nameKey: "taego", imageUrl: "https://wstatic-prod.pubg.com/web/live/main_7e1f0ba/img/19581ee.webp" },
+    { id: "miramar", nameKey: "miramar", imageUrl: "/maps/rotation/miramar.webp" },
+    { id: "paramo", nameKey: "paramo", imageUrl: "https://battlegrounds.party/map/map/Chimera/tiles/0/0/0.webp" },
+    { id: "rondo", nameKey: "rondo", imageUrl: "/maps/rotation/rondo.webp" },
+  ],
+};
 
-function MapTile({ map, dimmed = false }: { map: WeeklyMapRotationMap; dimmed?: boolean }) {
+const RANKED_MATCH_ROTATION: RotationSection = {
+  titleKey: "rankedMatch",
+  subtitleKey: "rankedSubtitle",
+  tone: "secondary",
+  maps: [
+    { id: "erangel", nameKey: "erangel", imageUrl: "/maps/rotation/erangel.webp" },
+    { id: "miramar", nameKey: "miramar", imageUrl: "/maps/rotation/miramar.webp" },
+    { id: "taego", nameKey: "taego", imageUrl: "https://wstatic-prod.pubg.com/web/live/main_7e1f0ba/img/19581ee.webp" },
+    { id: "rondo", nameKey: "rondo", imageUrl: "/maps/rotation/rondo.webp" },
+  ],
+};
+
+const ROTATION_SECTIONS = [NORMAL_MATCH_ROTATION, RANKED_MATCH_ROTATION] as const;
+
+function MapTile({ mapName, imageUrl, dimmed = false }: { mapName: string; imageUrl: string; dimmed?: boolean }) {
   return (
     <div
-      className={`relative h-16 md:h-20 overflow-hidden rounded-md border border-white/10 ${
-        dimmed ? "opacity-70" : ""
-      }`}
+      className={`relative h-16 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 md:h-20 ${dimmed ? "opacity-80" : ""}`}
       style={{
-        backgroundImage: `url('${map.imageUrl}')`,
+        backgroundImage: `url('${imageUrl}')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundColor: "#121212",
       }}
     >
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-      <div className="absolute inset-x-2 bottom-1.5">
-        <p className="truncate text-sm font-black text-white drop-shadow-md">{map.name}</p>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+      <div className="absolute inset-x-3 bottom-2">
+        <p className="truncate text-sm font-black text-white drop-shadow-md">{mapName}</p>
       </div>
     </div>
   );
 }
 
 export default function WeeklyMapRotationWidget() {
-  const { language } = useLanguage();
-  const currentWeek = WEEKLY_MAP_ROTATION.find((item) => item.status === "current");
-  const nextWeek = WEEKLY_MAP_ROTATION.find((item) => item.status === "next");
-
-  if (!currentWeek || !nextWeek) return null;
-
-  const labels =
-    language === "en"
-      ? {
-          title: "Weekly Map Rotation",
-          now: "Live",
-          thisWeek: "This Week",
-          nextWeek: "Next Week",
-        }
-      : language === "ja"
-        ? {
-            title: "週間マップローテーション",
-            now: "進行中",
-            thisWeek: "今週のローテーション",
-            nextWeek: "来週のローテーション",
-          }
-        : language === "zh"
-          ? {
-              title: "每周地图轮换",
-              now: "进行中",
-              thisWeek: "本周轮换",
-              nextWeek: "下周轮换",
-            }
-          : {
-              title: "주간 맵 로테이션",
-              now: "현재 진행 중",
-              thisWeek: "이번 주 로테이션",
-              nextWeek: "다음 주 로테이션",
-            };
+  const { t } = useLanguage();
+  const labels = t.weeklyMapRotation;
 
   return (
-    <section className="mt-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-dark-surface p-4 md:p-5">
-      <h3 className="text-base md:text-lg font-black text-gray-900 dark:text-white">{labels.title}</h3>
+    <section className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-dark-surface md:p-5">
+      <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+        <h3 className="text-base font-black text-gray-900 dark:text-white md:text-lg">{labels.title}</h3>
+        <p className="text-[11px] text-wbz-mute">{labels.source}</p>
+      </div>
 
       <div className="mt-3 space-y-4">
-        <article className="rounded-xl border border-emerald-400/30 bg-gray-50 dark:bg-dark-base/40 p-3">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-md bg-green-600 px-2 py-0.5 text-[10px] font-black text-white">
-              {labels.now}
-            </span>
-            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
-              [{labels.thisWeek}] {currentWeek.weekLabel} ({currentWeek.period})
-            </p>
-          </div>
+        {ROTATION_SECTIONS.map((section) => {
+          const title = labels[section.titleKey];
+          const subtitle = labels[section.subtitleKey];
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-            {currentWeek.maps.map((map) => (
-              <MapTile key={`${currentWeek.weekLabel}-${map.name}`} map={map} />
-            ))}
-          </div>
-        </article>
+          return (
+            <article
+              key={title}
+              className={`rounded-xl border p-3 ${
+                section.tone === "primary"
+                  ? "border-emerald-400/25 bg-gray-50 dark:bg-dark-base/40"
+                  : "border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-dark-base/30"
+              }`}
+            >
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <p className="text-sm font-black text-gray-900 dark:text-gray-100">{title}</p>
+                <span
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-black ${
+                    section.tone === "primary"
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-gray-300"
+                  }`}
+                >
+                  {subtitle}
+                </span>
+              </div>
 
-        <article className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-dark-base/30 p-3">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
-              [{labels.nextWeek}] {nextWeek.weekLabel} ({nextWeek.period})
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-            {nextWeek.maps.map((map) => (
-              <MapTile key={`${nextWeek.weekLabel}-${map.name}`} map={map} dimmed />
-            ))}
-          </div>
-        </article>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+                {section.maps.map((map) => (
+                  <MapTile
+                    key={`${title}-${map.id}`}
+                    mapName={labels.maps[map.nameKey]}
+                    imageUrl={map.imageUrl}
+                    dimmed={section.tone === "secondary"}
+                  />
+                ))}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
 }
-

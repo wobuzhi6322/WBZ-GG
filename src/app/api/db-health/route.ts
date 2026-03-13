@@ -3,17 +3,20 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/authOptions";
 import { getApiCacheStatus, pingApiCache } from "@/lib/apiCache";
 import { getSupabaseAdminStatus, pingSupabaseConnection, pingSupabaseTable } from "@/lib/supabaseAdmin";
+import { getConfiguredAdminEmails, isAdminEmail } from "@/lib/adminAccess";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+function notFoundResponse() {
+  return NextResponse.json({ error: "Not Found" }, { status: 404 });
 }
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return unauthorized();
+  if (!isAdminEmail(session?.user?.email, getConfiguredAdminEmails())) {
+    return notFoundResponse();
+  }
 
   const cacheStatus = getApiCacheStatus();
   const cachePing = await pingApiCache();

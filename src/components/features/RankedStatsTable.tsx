@@ -17,7 +17,7 @@ function getNextTierTarget(currentRp: number): number | null {
 export default function RankedStatsTable({ stats }: { stats: RankedStats | null }) {
   if (!stats) {
     return (
-      <div className="bg-white dark:bg-dark-surface border border-gray-200 dark:border-white/5 rounded-xl p-6 flex flex-col items-center justify-center text-center opacity-80">
+      <div className="rounded-3xl border border-gray-200/80 bg-white/95 p-8 text-center opacity-80 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.38)] dark:border-white/10 dark:bg-zinc-800/90 dark:shadow-[0_28px_90px_-52px_rgba(251,191,36,0.1)] flex flex-col items-center justify-center">
         <Trophy className="w-10 h-10 text-wbz-mute mb-2" />
         <h3 className="text-gray-900 dark:text-white font-bold">랭크 전적 없음</h3>
         <p className="text-xs text-wbz-mute">현재 시즌의 랭크 기록을 찾지 못했습니다.</p>
@@ -38,7 +38,7 @@ export default function RankedStatsTable({ stats }: { stats: RankedStats | null 
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-dark-surface border border-gray-200 dark:border-white/5 rounded-2xl overflow-visible relative"
+      className="relative overflow-visible rounded-3xl border border-gray-200/80 bg-white/95 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.38)] transition-transform duration-300 hover:-translate-y-0.5 dark:border-white/10 dark:bg-zinc-800/90 dark:shadow-[0_28px_90px_-52px_rgba(251,191,36,0.1)]"
     >
       <div
         className="absolute top-0 left-0 right-0 h-1 opacity-80"
@@ -47,7 +47,7 @@ export default function RankedStatsTable({ stats }: { stats: RankedStats | null 
         }}
       />
 
-      <div className="p-4 lg:p-5 relative">
+      <div className="relative p-6 lg:p-8">
         <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div className="rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-2.5">
             <div className="text-[10px] text-cyan-100 uppercase font-bold mb-1">Combat Index</div>
@@ -66,7 +66,7 @@ export default function RankedStatsTable({ stats }: { stats: RankedStats | null 
 
         <div className="flex flex-wrap items-start justify-between mb-4 gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative h-16 w-16 rounded-md bg-gray-100 dark:bg-dark-base overflow-hidden flex-shrink-0">
+            <div className="relative h-16 w-16 overflow-hidden rounded-2xl bg-gray-100 dark:bg-dark-base flex-shrink-0">
               <Image
                 src={stats.tier.imageUrl}
                 alt={`${stats.tier.name} 티어`}

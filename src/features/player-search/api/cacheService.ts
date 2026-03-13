@@ -3,7 +3,7 @@ import "server-only";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const PUBG_PLAYER_CACHE_TABLE = "pubg_player_cache";
-const PUBG_PLAYER_CACHE_TTL_MS = 30 * 60 * 1000;
+const PUBG_PLAYER_CACHE_TTL_MS = 20 * 60 * 1000;
 
 interface PubgPlayerCacheRow {
   player_name: string | null;

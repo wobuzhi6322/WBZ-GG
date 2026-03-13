@@ -190,6 +190,7 @@ export interface TierInfo {
   border: string;
   colorHex: string;
   imageUrl: string;
+  imagePath?: string;
 }
 
 export interface PubgStats {
@@ -208,6 +209,7 @@ export interface PubgStats {
     avgDamage: number;
     winRate: string;
   };
+  modeStats: Record<string, ModeStatsSummary>;
   radar: {
     subject: string;
     A: number;
@@ -226,6 +228,55 @@ export interface RankedStats {
   winRate: string;
   mode: string;
   modeLabel: string;
+  modeStats: Record<string, RankedModeStatsSummary>;
+}
+
+export interface WeaponModeStats {
+  kills: number;
+  headShots: number;
+  damagePlayer: number;
+  longestDefeat: number;
+}
+
+export interface WeaponStatDetail {
+  weapon: string;
+  official: WeaponModeStats;
+  competitive: WeaponModeStats;
+  kills: number;
+  headShots: number;
+  damagePlayer: number;
+  longestDefeat: number;
+}
+
+export interface WeaponMasteryProfile {
+  mainWeapon: string | null;
+  totalKills: number;
+  topWeaponKills: number;
+  trackedWeapons: number;
+  weapons: WeaponStatDetail[];
+}
+
+export interface ModeStatsSummary {
+  mode: string;
+  modeLabel: string;
+  matches: number;
+  wins: number;
+  top10s: number;
+  kills: number;
+  assists: number;
+  headshots: number;
+  avgDamage: number;
+  kda: string;
+  winRate: string;
+  top10Rate: string;
+  headshotRate: string;
+}
+
+export interface RankedModeStatsSummary extends ModeStatsSummary {
+  rp: number;
+  bestRp: number;
+  tier: TierInfo;
+  rank?: number;
 }
 
 export interface MatchSummary {

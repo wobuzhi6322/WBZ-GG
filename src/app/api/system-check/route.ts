@@ -9,6 +9,7 @@ import { getPubgPcOfficialUpdates } from "@/lib/pubgUpdates";
 import { getApiCacheStatus, pingApiCache } from "@/lib/apiCache";
 import { getSupabaseAdminStatus, pingSupabaseConnection, pingSupabaseTable } from "@/lib/supabaseAdmin";
 import { getSteamApiKeyStatus } from "@/lib/steam";
+import { getConfiguredAdminEmails, isAdminEmail } from "@/lib/adminAccess";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -102,7 +103,7 @@ function buildNextActions(modules: ModuleCheck[]): string[] {
 
   const supabase = modules.find((module) => module.key === "supabase_auth_store");
   if (supabase?.status !== "ok") {
-    actions.push("NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY를 확인하고 user_profiles/auth_events 테이블을 생성하세요.");
+    actions.push("Supabase URL과 서버 전용 인증 정보를 확인하고 user_profiles/auth_events 테이블을 생성하세요.");
   }
 
   const leaderboard = modules.find((module) => module.key === "leaderboard");
@@ -134,8 +135,8 @@ function buildNextActions(modules: ModuleCheck[]): string[] {
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdminEmail(session?.user?.email, getConfiguredAdminEmails())) {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
   const checks = await Promise.all([

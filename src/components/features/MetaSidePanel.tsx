@@ -72,6 +72,7 @@ function formatKoreanDate(value: string): string {
 
 export default function MetaSidePanel() {
   const { t } = useLanguage();
+  const panelText = t.metaPanel;
   const [rotation, setRotation] = useState<MapRotationResponse | null>(null);
   const [isLoadingRotation, setIsLoadingRotation] = useState(true);
 
@@ -126,7 +127,7 @@ export default function MetaSidePanel() {
             <Flame className="text-red-500 w-4 h-4" />
             {t.meta.trends_title}
           </h3>
-          <span className="text-[10px] text-wbz-mute font-mono bg-white/5 px-2 py-0.5 rounded">PATCH 40.1</span>
+          <span className="text-[10px] text-wbz-mute font-mono bg-white/5 px-2 py-0.5 rounded">{panelText.patchBadge}</span>
         </div>
 
         <div className="space-y-3">
@@ -183,17 +184,17 @@ export default function MetaSidePanel() {
         {isLoadingRotation ? (
           <div className="rounded-lg border border-white/10 bg-black/20 p-4 text-xs text-wbz-mute flex items-center gap-2">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-            공식 맵 로테이션 동기화 중...
+            {panelText.rotationSyncing}
           </div>
         ) : !rotation ? (
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-xs text-red-200">
-            공식 맵 로테이션을 불러오지 못했습니다.
+            {panelText.rotationFailed}
           </div>
         ) : (
           <div className="space-y-4">
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <div className="flex items-center justify-between text-[11px] mb-2">
-                <span className="font-bold text-wbz-gold">이번 주 일반전 ({rotation.currentWeek?.label ?? "-"})</span>
+                <span className="font-bold text-wbz-gold">{panelText.currentWeekNormal} ({rotation.currentWeek?.label ?? "-"})</span>
                 <span className="text-wbz-mute">
                   {rotation.currentWeek?.startAt ? formatKoreanDate(rotation.currentWeek.startAt) : "-"}
                 </span>
@@ -214,7 +215,7 @@ export default function MetaSidePanel() {
             </div>
 
             <div>
-              <p className="text-[11px] font-bold text-wbz-mute mb-2">업데이트 로테이션 풀 (AS)</p>
+              <p className="text-[11px] font-bold text-wbz-mute mb-2">{panelText.rotationPool}</p>
               <div className="grid grid-cols-2 gap-2">
                 {rotation.normal.rotationPool.map((map) => (
                   <div key={`pool-${map.id}`} className="relative h-16 rounded-md overflow-hidden border border-white/10">
@@ -229,7 +230,7 @@ export default function MetaSidePanel() {
                     <div className="absolute left-1.5 right-1.5 bottom-1 flex items-center justify-between gap-1">
                       <span className="text-[10px] font-bold text-white truncate">{map.nameKo}</span>
                       {currentWeekMapIds.has(map.id) && (
-                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-wbz-gold text-black">NOW</span>
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-wbz-gold text-black">{panelText.now}</span>
                       )}
                     </div>
                   </div>
@@ -238,7 +239,7 @@ export default function MetaSidePanel() {
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-              <p className="text-[11px] font-bold text-wbz-mute mb-2">경쟁전 로테이션</p>
+              <p className="text-[11px] font-bold text-wbz-mute mb-2">{panelText.rankedRotation}</p>
               <div className="flex flex-wrap gap-1.5">
                 {rotation.ranked.maps.map((map) => (
                   <span
@@ -253,14 +254,14 @@ export default function MetaSidePanel() {
             </div>
 
             <div className="pt-1 border-t border-white/5 flex items-center justify-between">
-              <p className="text-[10px] text-wbz-mute">기준: PUBG 공식 맵 서비스 리포트</p>
+              <p className="text-[10px] text-wbz-mute">{panelText.basedOn}</p>
               <Link
                 href={rotation.source.officialUrlKo}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[10px] font-bold text-wbz-gold hover:text-white transition-colors"
               >
-                원문 보기
+                {panelText.openPost}
                 <ExternalLink className="w-3 h-3" />
               </Link>
             </div>

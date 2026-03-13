@@ -1,38 +1,54 @@
-﻿"use client";
+"use client";
 
+import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import FooterInfoModal from "@/components/layout/FooterInfoModal";
+import type { FooterModalType } from "@/constants/footerInfo";
 
 export default function Footer() {
-  const { t, language } = useLanguage();
-
-  const licenseText =
-    language === "ko"
-      ? "배틀그라운드 공식 자료의 라이선스는 KRAFTON, INC.에 있습니다."
-      : language === "ja"
-        ? "PUBG公式データのライセンスは KRAFTON, INC. にあります。"
-        : language === "zh"
-          ? "PUBG 官方资料授权归 KRAFTON, INC. 所有。"
-          : "License for official PUBG materials belongs to KRAFTON, INC.";
+  const { t } = useLanguage();
+  const [modalType, setModalType] = useState<FooterModalType | null>(null);
 
   return (
-    <footer className="fixed bottom-0 w-full py-4 border-t border-white/5 bg-wbz-dark/80 backdrop-blur-sm z-40">
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
-        <div className="text-wbz-mute text-xs font-mono space-y-1">
-          <p>{t.footer.copyright}</p>
-          <p>{licenseText}</p>
+    <>
+      <footer className="fixed bottom-0 z-40 w-full border-t border-white/5 bg-wbz-dark/80 py-4 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between px-6 md:flex-row">
+          <div className="space-y-1 font-mono text-xs text-wbz-mute">
+            <p>{t.footer.copyright}</p>
+            <p>{t.footer.license}</p>
+          </div>
+
+          <div className="mt-2 flex gap-6 md:mt-0">
+            <button
+              type="button"
+              onClick={() => setModalType("terms")}
+              className="cursor-pointer text-xs text-wbz-mute transition-colors hover:text-white"
+            >
+              {t.footer.terms}
+            </button>
+            <button
+              type="button"
+              onClick={() => setModalType("privacy")}
+              className="cursor-pointer text-xs text-wbz-mute transition-colors hover:text-white"
+            >
+              {t.footer.privacy}
+            </button>
+            <button
+              type="button"
+              onClick={() => setModalType("status")}
+              className="cursor-pointer text-xs text-wbz-mute transition-colors hover:text-white"
+            >
+              {t.footer.status}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-6 mt-2 md:mt-0">
-          <a href="#" className="text-xs text-wbz-mute hover:text-wbz-gold transition-colors">
-            {t.footer.terms}
-          </a>
-          <a href="#" className="text-xs text-wbz-mute hover:text-wbz-gold transition-colors">
-            {t.footer.privacy}
-          </a>
-          <a href="#" className="text-xs text-wbz-mute hover:text-wbz-gold transition-colors">
-            {t.footer.status}
-          </a>
-        </div>
-      </div>
-    </footer>
+      </footer>
+
+      <FooterInfoModal
+        isOpen={!!modalType}
+        type={modalType}
+        onClose={() => setModalType(null)}
+      />
+    </>
   );
 }

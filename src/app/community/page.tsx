@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Bookmark,
@@ -13,6 +14,7 @@ import {
   Tv,
   X,
 } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 type PostType = "gear" | "setting";
 type FeedFilter = "all" | PostType;
@@ -45,47 +47,10 @@ const STORAGE_REACTIONS = "wbz-community-reactions-v4";
 const STORAGE_COMMENTS = "wbz-community-comments-v1";
 const STORAGE_SHARES = "wbz-community-shares-v1";
 
-const QUICK_TAGS = ["랭크", "일반전", "감도", "장비", "에임", "생존", "루트", "팀플"];
-
-const SEED_POSTS: Post[] = [
-  {
-    id: "seed-1",
-    type: "gear",
-    author: "TAEGO_RUSH",
-    title: "태이고 스쿼드 운영 장비",
-    body: "M416 + Mini14 조합, 연막 6개 기준. 외곽 운영에 안정적인 세팅입니다.",
-    tags: ["랭크", "팀플", "생존"],
-    imageUrl: "https://images.unsplash.com/photo-1472457974886-0ebcd59440cc?q=80&w=1200&auto=format&fit=crop",
-    gear: ["M416", "Mini14", "연막 x6", "3헬", "3조끼"],
-    setting: { dpi: null, sens: null, ads: null },
-    likes: 142,
-    saves: 87,
-    comments: 21,
-    shares: 8,
-    createdAt: "2026-02-13T10:05:00.000Z",
-  },
-  {
-    id: "seed-2",
-    type: "setting",
-    author: "MIRAMAR_SNIPER",
-    title: "반동 제어 감도 공유",
-    body: "2배율 빠르게, 6배율 안정적으로 맞춘 DMR용 감도. 중장거리 교전에 좋습니다.",
-    tags: ["감도", "에임", "랭크"],
-    imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1200&auto=format&fit=crop",
-    gear: [],
-    setting: { dpi: 800, sens: 38, ads: 32 },
-    likes: 231,
-    saves: 160,
-    comments: 39,
-    shares: 24,
-    createdAt: "2026-02-12T08:14:00.000Z",
-  },
-];
-
 function parseTags(raw: string): string[] {
   return raw
     .split(/[\s,]+/)
-    .map((t) => t.replace(/^#/, "").trim())
+    .map((tag) => tag.replace(/^#/, "").trim())
     .filter(Boolean)
     .slice(0, 8);
 }
@@ -93,23 +58,19 @@ function parseTags(raw: string): string[] {
 function parseGear(raw: string): string[] {
   return raw
     .split(/[\n,]+/)
-    .map((t) => t.trim())
+    .map((item) => item.trim())
     .filter(Boolean)
     .slice(0, 8);
 }
 
-function relativeTime(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "-";
-  const m = Math.floor((Date.now() - date.getTime()) / 60000);
-  if (m < 1) return "방금 전";
-  if (m < 60) return `${m}분 전`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}시간 전`;
-  return `${Math.floor(h / 24)}일 전`;
+function replaceValue(template: string, value: number): string {
+  return template.replace("{{value}}", String(value));
 }
 
 export default function CommunityPage() {
+  const { t } = useLanguage();
+  const labels = t.communityPage;
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [reactions, setReactions] = useState<ReactionState>({ liked: {}, saved: {} });
   const [extraComments, setExtraComments] = useState<Record<string, string[]>>({});
@@ -133,18 +94,58 @@ export default function CommunityPage() {
   const [sens, setSens] = useState("");
   const [ads, setAds] = useState("");
 
+  const seedPosts = useMemo<Post[]>(() => {
+    const first = labels.seedPosts[0];
+    const second = labels.seedPosts[1];
+    return [
+      {
+        id: "seed-1",
+        type: "gear",
+        author: first.author,
+        title: first.title,
+        body: first.body,
+        tags: [...first.tags],
+        imageUrl: "https://images.unsplash.com/photo-1472457974886-0ebcd59440cc?q=80&w=1200&auto=format&fit=crop",
+        gear: ["M416", "Mini14", "Smoke x6", "Vest Lv3", "Helmet Lv3"],
+        setting: { dpi: null, sens: null, ads: null },
+        likes: 142,
+        saves: 87,
+        comments: 21,
+        shares: 8,
+        createdAt: "2026-02-13T10:05:00.000Z",
+      },
+      {
+        id: "seed-2",
+        type: "setting",
+        author: second.author,
+        title: second.title,
+        body: second.body,
+        tags: [...second.tags],
+        imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1200&auto=format&fit=crop",
+        gear: [],
+        setting: { dpi: 800, sens: 38, ads: 32 },
+        likes: 231,
+        saves: 160,
+        comments: 39,
+        shares: 24,
+        createdAt: "2026-02-12T08:14:00.000Z",
+      },
+    ];
+  }, [labels.seedPosts]);
+
   useEffect(() => {
     try {
-      const p = localStorage.getItem(STORAGE_POSTS);
-      const r = localStorage.getItem(STORAGE_REACTIONS);
-      const c = localStorage.getItem(STORAGE_COMMENTS);
-      const s = localStorage.getItem(STORAGE_SHARES);
-      if (p) setPosts(JSON.parse(p) as Post[]);
-      if (r) setReactions(JSON.parse(r) as ReactionState);
-      if (c) setExtraComments(JSON.parse(c) as Record<string, string[]>);
-      if (s) setExtraShares(JSON.parse(s) as Record<string, number>);
+      const storedPosts = localStorage.getItem(STORAGE_POSTS);
+      const storedReactions = localStorage.getItem(STORAGE_REACTIONS);
+      const storedComments = localStorage.getItem(STORAGE_COMMENTS);
+      const storedShares = localStorage.getItem(STORAGE_SHARES);
+
+      if (storedPosts) setPosts(JSON.parse(storedPosts) as Post[]);
+      if (storedReactions) setReactions(JSON.parse(storedReactions) as ReactionState);
+      if (storedComments) setExtraComments(JSON.parse(storedComments) as Record<string, string[]>);
+      if (storedShares) setExtraShares(JSON.parse(storedShares) as Record<string, number>);
     } catch (error) {
-      console.error("커뮤니티 로드 실패:", error);
+      console.error("Community state load failed:", error);
     }
   }, []);
 
@@ -153,47 +154,107 @@ export default function CommunityPage() {
   useEffect(() => localStorage.setItem(STORAGE_COMMENTS, JSON.stringify(extraComments)), [extraComments]);
   useEffect(() => localStorage.setItem(STORAGE_SHARES, JSON.stringify(extraShares)), [extraShares]);
 
-  const allPosts = useMemo(() => [...posts, ...SEED_POSTS], [posts]);
+  const allPosts = useMemo(() => [...posts, ...seedPosts], [posts, seedPosts]);
+
   const topTags = useMemo(() => {
-    const map = new Map<string, number>();
-    allPosts.forEach((p) => p.tags.forEach((tag) => map.set(tag, (map.get(tag) ?? 0) + 1)));
-    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const counts = new Map<string, number>();
+    allPosts.forEach((post) => {
+      post.tags.forEach((tag) => counts.set(tag, (counts.get(tag) ?? 0) + 1));
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8);
   }, [allPosts]);
 
   const feed = useMemo(() => {
     const q = keyword.trim().toLowerCase();
-    let list = allPosts.filter((p) => {
-      if (filter !== "all" && p.type !== filter) return false;
-      if (activeTag && !p.tags.includes(activeTag)) return false;
+
+    const filtered = allPosts.filter((post) => {
+      if (filter !== "all" && post.type !== filter) return false;
+      if (activeTag && !post.tags.includes(activeTag)) return false;
       if (!q) return true;
-      return [p.author, p.title, p.body, ...p.tags].join(" ").toLowerCase().includes(q);
+      return [post.author, post.title, post.body, ...post.tags].join(" ").toLowerCase().includes(q);
     });
-    if (sort === "saved") list = list.filter((p) => reactions.saved[p.id]);
-    list.sort((a, b) => {
-      if (sort === "latest" || sort === "saved") return +new Date(b.createdAt) - +new Date(a.createdAt);
-      const aScore =
-        a.likes + (reactions.liked[a.id] ? 1 : 0) + (a.comments + (extraComments[a.id]?.length ?? 0)) * 2 + (a.saves + (reactions.saved[a.id] ? 1 : 0)) * 2;
-      const bScore =
-        b.likes + (reactions.liked[b.id] ? 1 : 0) + (b.comments + (extraComments[b.id]?.length ?? 0)) * 2 + (b.saves + (reactions.saved[b.id] ? 1 : 0)) * 2;
-      return bScore - aScore;
+
+    const sorted = [...filtered];
+    if (sort === "saved") {
+      return sorted
+        .filter((post) => reactions.saved[post.id])
+        .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+    }
+
+    sorted.sort((a, b) => {
+      if (sort === "latest") {
+        return +new Date(b.createdAt) - +new Date(a.createdAt);
+      }
+
+      const score = (post: Post) =>
+        post.likes +
+        (reactions.liked[post.id] ? 1 : 0) +
+        (post.comments + (extraComments[post.id]?.length ?? 0)) * 2 +
+        (post.saves + (reactions.saved[post.id] ? 1 : 0)) * 2 +
+        (post.shares + (extraShares[post.id] ?? 0));
+
+      return score(b) - score(a);
     });
-    return list;
-  }, [allPosts, filter, activeTag, keyword, sort, reactions, extraComments]);
+
+    return sorted;
+  }, [activeTag, allPosts, extraComments, extraShares, filter, keyword, reactions, sort]);
+
+  const relativeTime = (iso: string): string => {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return "-";
+    const diffMinutes = Math.floor((Date.now() - date.getTime()) / 60000);
+    if (diffMinutes < 1) return labels.card.justNow;
+    if (diffMinutes < 60) return replaceValue(labels.card.minutesAgo, diffMinutes);
+    const hours = Math.floor(diffMinutes / 60);
+    if (hours < 24) return replaceValue(labels.card.hoursAgo, hours);
+    return replaceValue(labels.card.daysAgo, Math.floor(hours / 24));
+  };
 
   const addQuickTag = (tag: string) => {
-    const tags = parseTags(tagsInput);
-    if (tags.includes(tag)) return;
-    setTagsInput([...tags, tag].map((v) => `#${v}`).join(" "));
+    const parsed = parseTags(tagsInput);
+    if (parsed.includes(tag)) return;
+    setTagsInput([...parsed, tag].map((item) => `#${item}`).join(" "));
+  };
+
+  const toggleLike = (postId: string) => {
+    setReactions((prev) => ({
+      ...prev,
+      liked: { ...prev.liked, [postId]: !prev.liked[postId] },
+    }));
+  };
+
+  const toggleSave = (postId: string) => {
+    setReactions((prev) => ({
+      ...prev,
+      saved: { ...prev.saved, [postId]: !prev.saved[postId] },
+    }));
+  };
+
+  const handleShare = (postId: string) => {
+    setExtraShares((prev) => ({ ...prev, [postId]: (prev[postId] ?? 0) + 1 }));
+  };
+
+  const handleComment = (postId: string) => {
+    const content = (commentDraft[postId] ?? "").trim();
+    if (!content) return;
+    setExtraComments((prev) => ({ ...prev, [postId]: [...(prev[postId] ?? []), content] }));
+    setCommentDraft((prev) => ({ ...prev, [postId]: "" }));
   };
 
   const submitPost = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!body.trim()) return alert("본문은 필수입니다.");
+    if (!body.trim()) {
+      window.alert(labels.composer.bodyRequired);
+      return;
+    }
+
     const next: Post = {
       id: `post-${Date.now()}`,
       type,
-      author: author.trim() || "익명",
-      title: title.trim() || (type === "gear" ? "장비 세팅 공유" : "감도 세팅 공유"),
+      author: author.trim() || labels.composer.anonymous,
+      title: title.trim() || (type === "gear" ? labels.composer.defaultGearTitle : labels.composer.defaultSettingTitle),
       body: body.trim(),
       tags: parseTags(tagsInput),
       imageUrl: imageUrl.trim(),
@@ -209,75 +270,253 @@ export default function CommunityPage() {
       shares: 0,
       createdAt: new Date().toISOString(),
     };
+
     setPosts((prev) => [next, ...prev]);
-    setAuthor(""); setTitle(""); setBody(""); setImageUrl(""); setTagsInput(""); setGearInput(""); setDpi(""); setSens(""); setAds("");
+    setAuthor("");
+    setTitle("");
+    setBody("");
+    setImageUrl("");
+    setTagsInput("");
+    setGearInput("");
+    setDpi("");
+    setSens("");
+    setAds("");
     setComposerOpen(false);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-6 mb-5">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+    <div className="container mx-auto max-w-7xl px-4 py-8">
+      <section className="mb-5 rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-3xl md:text-5xl font-black text-white mb-2">WBZ 커뮤니티 허브</h1>
-            <p className="text-wbz-mute text-sm">장비와 감도를 빠르게 공유하고 댓글, 저장, 공유로 반응을 쌓는 실전형 피드</p>
+            <h1 className="mb-2 text-3xl font-black text-white md:text-5xl">{labels.title}</h1>
+            <p className="text-sm text-wbz-mute">{labels.subtitle}</p>
           </div>
-          <button type="button" onClick={() => setComposerOpen(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-wbz-gold text-black font-black text-sm">
-            <Plus className="w-4 h-4" /> 새 글 작성
+          <button
+            type="button"
+            onClick={() => setComposerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-wbz-gold px-4 py-2.5 text-sm font-black text-black"
+          >
+            <Plus className="h-4 w-4" />
+            {labels.createPost}
           </button>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-        <div className="xl:col-span-8 space-y-3">
-          <div className="rounded-2xl border border-white/10 bg-wbz-card/70 p-3 space-y-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+        <div className="space-y-3 xl:col-span-8">
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-wbz-card/70 p-3">
             <div className="flex flex-wrap items-center gap-2">
-              {([["all", "전체"], ["gear", "장비"], ["setting", "감도"]] as Array<[FeedFilter, string]>).map(([k, l]) => (
-                <button key={k} onClick={() => { setFilter(k); if (k !== "all") setActiveTag(""); }} className={`px-3 py-1.5 rounded-full text-xs font-bold border ${filter === k ? "bg-wbz-gold text-black border-wbz-gold" : "bg-white/5 text-wbz-mute border-white/10"}`}>{l}</button>
+              {([
+                ["all", labels.filters.all],
+                ["gear", labels.filters.gear],
+                ["setting", labels.filters.setting],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setFilter(key);
+                    if (key !== "all") setActiveTag("");
+                  }}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-bold ${
+                    filter === key
+                      ? "border-wbz-gold bg-wbz-gold text-black"
+                      : "border-white/10 bg-white/5 text-wbz-mute"
+                  }`}
+                >
+                  {label}
+                </button>
               ))}
+
               <div className="ml-auto flex items-center gap-2">
-                <select value={sort} onChange={(e) => setSort(e.target.value as FeedSort)} className="bg-black/30 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                  <option value="latest">최신순</option><option value="popular">인기순</option><option value="saved">저장한 글</option>
+                <select
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value as FeedSort)}
+                  className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 text-xs text-white"
+                >
+                  <option value="latest">{labels.filters.latest}</option>
+                  <option value="popular">{labels.filters.popular}</option>
+                  <option value="saved">{labels.filters.saved}</option>
                 </select>
               </div>
             </div>
+
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative flex-1 min-w-[220px]">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-wbz-mute" />
-                <input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="작성자/제목/태그 검색" className="w-full bg-black/30 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white" />
+              <div className="relative min-w-[220px] flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-wbz-mute" />
+                <input
+                  value={keyword}
+                  onChange={(event) => setKeyword(event.target.value)}
+                  placeholder={labels.filters.searchPlaceholder}
+                  className="w-full rounded-lg border border-white/10 bg-black/30 py-2 pl-9 pr-3 text-sm text-white"
+                />
               </div>
-              {activeTag && <button onClick={() => setActiveTag("")} className="px-2.5 py-1.5 rounded-full text-[11px] font-bold border border-rose-300/40 bg-rose-500/10 text-rose-200">태그 해제 #{activeTag}</button>}
+
+              {activeTag ? (
+                <button
+                  onClick={() => setActiveTag("")}
+                  className="rounded-full border border-rose-300/40 bg-rose-500/10 px-2.5 py-1.5 text-[11px] font-bold text-rose-200"
+                >
+                  {labels.filters.clearTag} #{activeTag}
+                </button>
+              ) : null}
             </div>
           </div>
 
-          {feed.length === 0 ? <div className="rounded-2xl border border-white/10 bg-wbz-card/70 p-10 text-center text-wbz-mute">조건에 맞는 게시물이 없습니다.</div> : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {feed.map((p, i) => {
-                const liked = Boolean(reactions.liked[p.id]);
-                const saved = Boolean(reactions.saved[p.id]);
-                const commentCount = p.comments + (extraComments[p.id]?.length ?? 0);
+          {feed.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-wbz-card/70 p-10 text-center text-wbz-mute">
+              {labels.empty}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {feed.map((post, index) => {
+                const liked = Boolean(reactions.liked[post.id]);
+                const saved = Boolean(reactions.saved[post.id]);
+                const comments = extraComments[post.id] ?? [];
+                const shareCount = post.shares + (extraShares[post.id] ?? 0);
+                const totalLikeCount = post.likes + (liked ? 1 : 0);
+                const totalSaveCount = post.saves + (saved ? 1 : 0);
+
                 return (
-                  <motion.article key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }} className="rounded-xl overflow-hidden border border-white/10 bg-wbz-card/90">
-                    <div className="relative h-36 bg-cover bg-center" style={{ backgroundImage: p.imageUrl ? `linear-gradient(to top, rgba(0,0,0,.7), rgba(0,0,0,.2)), url(${p.imageUrl})` : "linear-gradient(160deg,#0b0b0b,#141414)" }}>
-                      <div className="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20 bg-black/40">{p.type === "gear" ? "장비" : "감도"}</div>
-                      <div className="absolute top-2 right-2 text-[10px] text-white/80">{relativeTime(p.createdAt)}</div>
-                      <div className="absolute bottom-2 left-2 text-xs font-black">@{p.author}</div>
-                    </div>
-                    <div className="p-3 space-y-2">
-                      <h3 className="text-white font-black text-base">{p.title}</h3>
-                      <p className="text-xs text-wbz-mute">{p.body}</p>
-                      <div className="flex flex-wrap gap-1.5">{p.tags.map((t) => <button key={`${p.id}-${t}`} onClick={() => { setFilter("all"); setActiveTag(t); }} className="text-[10px] px-2 py-1 rounded-full bg-white/5 border border-white/10">#{t}</button>)}</div>
-                      {p.type === "gear" && p.gear.length > 0 && <div className="flex flex-wrap gap-1.5">{p.gear.slice(0, 4).map((g) => <span key={`${p.id}-${g}`} className="text-[10px] px-2 py-1 rounded-md bg-amber-400/20 border border-amber-300/30 text-amber-100">{g}</span>)}</div>}
-                      {p.type === "setting" && <div className="flex gap-1.5 text-[10px]"><span className="px-2 py-1 rounded bg-cyan-400/20 border border-cyan-300/30">DPI {p.setting.dpi ?? "-"}</span><span className="px-2 py-1 rounded bg-cyan-400/20 border border-cyan-300/30">민감도 {p.setting.sens ?? "-"}</span><span className="px-2 py-1 rounded bg-cyan-400/20 border border-cyan-300/30">ADS {p.setting.ads ?? "-"}</span></div>}
-                      <div className="flex items-center justify-between pt-2 border-t border-white/10 text-[11px]">
-                        <button onClick={() => setReactions((prev) => ({ ...prev, liked: { ...prev.liked, [p.id]: !prev.liked[p.id] } }))} className="inline-flex items-center gap-1 text-wbz-mute hover:text-white"><Heart className={`w-4 h-4 ${liked ? "fill-red-500 text-red-500" : ""}`} />{p.likes + (liked ? 1 : 0)}</button>
-                        <span className="inline-flex items-center gap-1 text-wbz-mute"><MessageCircle className="w-4 h-4" />{commentCount}</span>
-                        <button onClick={() => setReactions((prev) => ({ ...prev, saved: { ...prev.saved, [p.id]: !prev.saved[p.id] } }))} className="inline-flex items-center gap-1 text-wbz-mute hover:text-white"><Bookmark className={`w-4 h-4 ${saved ? "fill-amber-300 text-amber-300" : ""}`} />{p.saves + (saved ? 1 : 0)}</button>
-                        <button onClick={async () => { const text = `[WBZ] ${p.title}\\n${p.body}`; const url = `${window.location.origin}/community#${p.id}`; if (typeof navigator.share === "function") await navigator.share({ title: p.title, text, url }); else await navigator.clipboard.writeText(`${text}\\n${url}`); setExtraShares((prev) => ({ ...prev, [p.id]: (prev[p.id] ?? 0) + 1 })); }} className="inline-flex items-center gap-1 text-wbz-mute hover:text-white"><Send className="w-4 h-4" />{p.shares + (extraShares[p.id] ?? 0)}</button>
+                  <motion.article
+                    key={post.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.02 }}
+                    className="overflow-hidden rounded-xl border border-white/10 bg-wbz-card/90"
+                  >
+                    {post.imageUrl ? (
+                      <div className="relative h-44 w-full overflow-hidden">
+                        <Image src={post.imageUrl} alt={post.title} fill className="object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        <div className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/50 px-2 py-1 text-[11px] font-bold text-white">
+                          <Tv className="h-3 w-3 text-wbz-gold" />
+                          {post.type === "gear" ? labels.filters.gear : labels.filters.setting}
+                        </div>
                       </div>
-                      <div className="flex gap-1.5 pt-1">
-                        <input value={commentDraft[p.id] ?? ""} onChange={(e) => setCommentDraft((prev) => ({ ...prev, [p.id]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const text = (commentDraft[p.id] ?? "").trim(); if (!text) return; setExtraComments((prev) => ({ ...prev, [p.id]: [...(prev[p.id] ?? []), text] })); setCommentDraft((prev) => ({ ...prev, [p.id]: "" })); } }} placeholder="댓글 입력..." className="flex-1 bg-black/30 border border-white/10 rounded-md px-2.5 py-1.5 text-[11px] text-white" />
-                        <button onClick={() => { const text = (commentDraft[p.id] ?? "").trim(); if (!text) return; setExtraComments((prev) => ({ ...prev, [p.id]: [...(prev[p.id] ?? []), text] })); setCommentDraft((prev) => ({ ...prev, [p.id]: "" })); }} className="px-2.5 py-1.5 rounded-md bg-white/10 border border-white/10 text-[11px] font-bold">등록</button>
+                    ) : null}
+
+                    <div className="space-y-3 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs text-wbz-mute">
+                            {post.author} / {relativeTime(post.createdAt)}
+                          </p>
+                          <h2 className="mt-1 text-lg font-black text-white">{post.title}</h2>
+                        </div>
+                      </div>
+
+                      <p className="text-sm leading-6 text-zinc-200">{post.body}</p>
+
+                      {post.tags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {post.tags.map((tag) => (
+                            <button
+                              key={`${post.id}-${tag}`}
+                              onClick={() => setActiveTag(tag)}
+                              className="rounded-full border border-wbz-gold/25 bg-wbz-gold/10 px-2.5 py-1 text-[11px] font-bold text-wbz-gold"
+                            >
+                              #{tag}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {post.type === "gear" && post.gear.length > 0 ? (
+                        <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                          <div className="mb-2 text-[11px] font-bold text-wbz-mute">{labels.card.loadout}</div>
+                          <div className="flex flex-wrap gap-2">
+                            {post.gear.map((item) => (
+                              <span
+                                key={`${post.id}-${item}`}
+                                className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white"
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {post.type === "setting" ? (
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            ["DPI", post.setting.dpi ?? "-"],
+                            [labels.composer.sens, post.setting.sens ?? "-"],
+                            [labels.composer.ads, post.setting.ads ?? "-"],
+                          ].map(([label, value]) => (
+                            <div key={`${post.id}-${label}`} className="rounded-xl border border-white/10 bg-black/25 p-3 text-center">
+                              <div className="text-[11px] text-wbz-mute">{label}</div>
+                              <div className="mt-1 text-base font-black text-white">{value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="flex flex-wrap items-center gap-2 border-t border-white/5 pt-3">
+                        <button
+                          onClick={() => toggleLike(post.id)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
+                            liked ? "bg-rose-500/15 text-rose-300" : "bg-white/5 text-wbz-mute"
+                          }`}
+                        >
+                          <Heart className="h-3.5 w-3.5" />
+                          {labels.card.likes} {totalLikeCount}
+                        </button>
+                        <button
+                          onClick={() => toggleSave(post.id)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
+                            saved ? "bg-emerald-500/15 text-emerald-300" : "bg-white/5 text-wbz-mute"
+                          }`}
+                        >
+                          <Bookmark className="h-3.5 w-3.5" />
+                          {labels.card.saves} {totalSaveCount}
+                        </button>
+                        <button
+                          onClick={() => handleShare(post.id)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-xs font-bold text-wbz-mute"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                          {labels.card.shares} {shareCount}
+                        </button>
+                        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-xs font-bold text-wbz-mute">
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          {labels.card.comments} {post.comments + comments.length}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 rounded-xl border border-white/10 bg-black/25 p-3">
+                        <div className="flex gap-2">
+                          <input
+                            value={commentDraft[post.id] ?? ""}
+                            onChange={(event) =>
+                              setCommentDraft((prev) => ({ ...prev, [post.id]: event.target.value }))
+                            }
+                            placeholder={labels.card.commentPlaceholder}
+                            className="flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-white"
+                          />
+                          <button
+                            onClick={() => handleComment(post.id)}
+                            className="rounded-lg bg-wbz-gold px-3 py-2 text-xs font-black text-black"
+                          >
+                            {labels.card.commentSubmit}
+                          </button>
+                        </div>
+
+                        {comments.length > 0 ? (
+                          <div className="space-y-1">
+                            {comments.map((comment, commentIndex) => (
+                              <div
+                                key={`${post.id}-comment-${commentIndex}`}
+                                className="rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-xs text-zinc-200"
+                              >
+                                {comment}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-wbz-mute">{labels.card.noComments}</div>
+                        )}
                       </div>
                     </div>
                   </motion.article>
@@ -287,45 +526,163 @@ export default function CommunityPage() {
           )}
         </div>
 
-        <aside className="xl:col-span-4 space-y-3 xl:sticky xl:top-28 h-fit">
-          <section className="rounded-2xl border border-white/10 bg-wbz-card/70 p-4">
-            <h2 className="text-sm font-black text-white mb-3">인기 태그</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {topTags.map(([tag, count]) => <button key={tag} onClick={() => { setFilter("all"); setActiveTag(tag); }} className="text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5">#{tag} <span className="text-wbz-mute">{count}</span></button>)}
+        <aside className="space-y-4 xl:col-span-4">
+          <div className="rounded-2xl border border-white/10 bg-wbz-card/80 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4 text-wbz-gold" />
+              <h2 className="text-sm font-black text-white">{labels.quickTagsTitle}</h2>
             </div>
-          </section>
-          <section className="rounded-2xl border border-white/10 bg-wbz-card/70 p-4">
-            <h2 className="text-sm font-black text-white mb-2">빠른 태그 추가</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {QUICK_TAGS.map((tag) => <button key={tag} onClick={() => addQuickTag(tag)} className="text-[11px] px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-wbz-mute hover:text-white">#{tag}</button>)}
+            <div className="flex flex-wrap gap-2">
+              {[...labels.quickTags, ...topTags.map(([tag]) => tag)].slice(0, 12).map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setActiveTag(tag)}
+                  className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                    activeTag === tag
+                      ? "border-wbz-gold bg-wbz-gold text-black"
+                      : "border-white/10 bg-white/5 text-wbz-mute"
+                  }`}
+                >
+                  #{tag}
+                </button>
+              ))}
             </div>
-          </section>
+          </div>
         </aside>
       </div>
 
-      {composerOpen && (
-        <div className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
-          <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-zinc-950 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-lg font-black">새 글 작성</h2>
-              <button type="button" onClick={() => setComposerOpen(false)} className="p-2 rounded-lg bg-white/5 text-wbz-mute hover:text-white"><X className="w-4 h-4" /></button>
+      {composerOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-zinc-950 p-5 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-black text-white">{labels.composer.title}</h2>
+              <button
+                onClick={() => setComposerOpen(false)}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-wbz-mute"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <form onSubmit={submitPost} className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setType("gear")} className={`px-3 py-2 rounded-lg text-xs font-bold border ${type === "gear" ? "bg-wbz-gold text-black border-wbz-gold" : "bg-white/5 text-wbz-mute border-white/10"}`}><Tv className="w-3.5 h-3.5 inline-block mr-1" />장비 공유</button>
-                <button type="button" onClick={() => setType("setting")} className={`px-3 py-2 rounded-lg text-xs font-bold border ${type === "setting" ? "bg-wbz-gold text-black border-wbz-gold" : "bg-white/5 text-wbz-mute border-white/10"}`}><SlidersHorizontal className="w-3.5 h-3.5 inline-block mr-1" />감도 공유</button>
+
+            <form onSubmit={submitPost} className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {([
+                  ["gear", labels.composer.gear],
+                  ["setting", labels.composer.setting],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setType(key)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-bold ${
+                      type === key
+                        ? "border-wbz-gold bg-wbz-gold text-black"
+                        : "border-white/10 bg-white/5 text-wbz-mute"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
-              <input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="작성자 (미입력 시 익명)" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white" />
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목 (선택)" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white" />
-              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} placeholder="본문 (필수)" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white resize-none" />
-              <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="이미지 URL (선택)" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white" />
-              <input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="태그 (#랭크 #감도 #장비)" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white" />
-              {type === "gear" ? <textarea value={gearInput} onChange={(e) => setGearInput(e.target.value)} rows={2} placeholder="장비 목록 (예: M416, Mini14, 연막 x6)" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white resize-none" /> : <div className="grid grid-cols-3 gap-2"><input value={dpi} onChange={(e) => setDpi(e.target.value)} placeholder="DPI" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white" /><input value={sens} onChange={(e) => setSens(e.target.value)} placeholder="민감도" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white" /><input value={ads} onChange={(e) => setAds(e.target.value)} placeholder="ADS" className="w-full glass-input rounded-lg px-3 py-2 text-sm text-white" /></div>}
-              <button className="w-full bg-wbz-gold text-black rounded-lg py-2.5 text-sm font-black hover:bg-white">게시하기</button>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  value={author}
+                  onChange={(event) => setAuthor(event.target.value)}
+                  placeholder={labels.composer.author}
+                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                />
+                <input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder={labels.composer.titleField}
+                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                />
+              </div>
+
+              <textarea
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+                placeholder={labels.composer.body}
+                rows={5}
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+              />
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  value={imageUrl}
+                  onChange={(event) => setImageUrl(event.target.value)}
+                  placeholder={labels.composer.imageUrl}
+                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                />
+                <input
+                  value={tagsInput}
+                  onChange={(event) => setTagsInput(event.target.value)}
+                  placeholder={labels.composer.tags}
+                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                />
+              </div>
+
+              {type === "gear" ? (
+                <textarea
+                  value={gearInput}
+                  onChange={(event) => setGearInput(event.target.value)}
+                  placeholder={labels.composer.gearList}
+                  rows={3}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                />
+              ) : (
+                <div className="grid gap-3 md:grid-cols-3">
+                  <input
+                    value={dpi}
+                    onChange={(event) => setDpi(event.target.value)}
+                    placeholder={labels.composer.dpi}
+                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                  />
+                  <input
+                    value={sens}
+                    onChange={(event) => setSens(event.target.value)}
+                    placeholder={labels.composer.sens}
+                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                  />
+                  <input
+                    value={ads}
+                    onChange={(event) => setAds(event.target.value)}
+                    placeholder={labels.composer.ads}
+                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                {[...labels.quickTags, ...topTags.map(([tag]) => tag)].slice(0, 10).map((tag) => (
+                  <button
+                    key={`quick-${tag}`}
+                    type="button"
+                    onClick={() => addQuickTag(tag)}
+                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-wbz-mute"
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setComposerOpen(false)}
+                  className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-white"
+                >
+                  {labels.composer.cancel}
+                </button>
+                <button type="submit" className="rounded-xl bg-wbz-gold px-4 py-2 text-sm font-black text-black">
+                  {labels.composer.submit}
+                </button>
+              </div>
             </form>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

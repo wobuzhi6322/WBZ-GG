@@ -19,6 +19,7 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import type { UserProfileRecord } from "@/lib/userCustomProfile";
 import type { AdminSettings } from "@/lib/adminSettings";
+import { getPublicAdminEmails, isAdminEmail } from "@/lib/adminAccess";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useSupabaseAuth } from "@/context/SupabaseAuthContext";
@@ -29,9 +30,9 @@ const NAV_ITEMS = [
   { href: "/ranking", key: "leaderboard" },
   // { href: "/agents", key: "agents" }, // temporarily hidden for review
   { href: "/arsenal", key: "arsenal" },
+  { href: "/skin", key: "skin" },
   { href: "/intel", key: "intel" },
   { href: "/updates", key: "updates" },
-  { href: "/daekkoller", key: "daekkoller" },
   // { href: "/killgame", key: "killgame" }, // temporarily hidden for review
   // { href: "/community", key: "community" }, // temporarily hidden for review
 ] as const;
@@ -176,6 +177,7 @@ export default function Navbar() {
   const profileImage =
     session?.user?.image ||
     (typeof user?.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url : "");
+  const isAdminUser = isAdminEmail(session?.user?.email, getPublicAdminEmails());
 
   return (
     <>
@@ -302,7 +304,7 @@ export default function Navbar() {
                   <UserCircle2 className="w-5 h-5 text-wbz-mute" />
                 </Link>
 
-                {session?.user?.email && (
+                {isAdminUser && (
                   <Link
                     href="/admin"
                     className="px-2.5 py-2 rounded-lg bg-wbz-card border border-gray-200 dark:border-white/10 hover:border-wbz-gold/50 text-[11px] font-bold text-wbz-mute hover:text-wbz-gold transition-colors whitespace-nowrap"
@@ -417,7 +419,7 @@ export default function Navbar() {
                     <UserCircle2 className="w-4 h-4" />
                     {t.common.profile}
                   </Link>
-                  {session?.user?.email && (
+                  {isAdminUser && (
                     <Link
                       href="/admin"
                       className="px-4 py-3 rounded-lg font-bold text-sm bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 hover:border-wbz-gold/50 hover:text-wbz-gold transition-colors text-center"

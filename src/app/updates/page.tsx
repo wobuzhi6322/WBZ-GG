@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -47,30 +47,10 @@ function formatDate(value: string, language: LanguageType): string {
 }
 
 export default function UpdatesPage() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [updates, setUpdates] = useState<UpdateItem[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const text = useMemo(() => {
-    if (language === "ko") {
-      return {
-        title: "공식 업데이트",
-        subtitle: "배틀그라운드 PC 공식 패치노트/업데이트를 실시간으로 수집합니다.",
-        refresh: "새로고침",
-        latest: "최신 업데이트",
-        noData: "업데이트 데이터가 없습니다. 잠시 후 다시 시도해 주세요.",
-        open: "원문 보기",
-      };
-    }
-    return {
-      title: "Official Updates",
-      subtitle: "Live feed of official PUBG PC patch notes and update announcements.",
-      refresh: "Refresh",
-      latest: "Latest",
-      noData: "No update data found. Please try again in a moment.",
-      open: "Open Post",
-    };
-  }, [language]);
+  const text = t.updates;
 
   const fetchUpdates = useCallback(async () => {
     setLoading(true);
@@ -113,7 +93,7 @@ export default function UpdatesPage() {
 
       {loading ? (
         <div className="bg-wbz-card border border-white/5 rounded-2xl p-10 text-center text-wbz-mute">
-          LOADING OFFICIAL FEED...
+          {text.loading}
         </div>
       ) : updates.length === 0 ? (
         <div className="bg-wbz-card border border-white/5 rounded-2xl p-10 text-center text-wbz-mute">

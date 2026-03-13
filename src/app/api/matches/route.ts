@@ -21,6 +21,35 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function extractCachedMatches(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+  if (
+    payload &&
+    typeof payload === "object" &&
+    !Array.isArray(payload) &&
+    Array.isArray((payload as { matches?: unknown }).matches)
+  ) {
+    return (payload as { matches: unknown[] }).matches;
+  }
+  return [];
+}
+
+function mergeMatchesIntoCachePayload(existingPayload: unknown, matches: unknown[]): unknown {
+  if (
+    existingPayload &&
+    typeof existingPayload === "object" &&
+    !Array.isArray(existingPayload) &&
+    Array.isArray((existingPayload as { matches?: unknown }).matches)
+  ) {
+    return {
+      ...(existingPayload as Record<string, unknown>),
+      matches,
+      fetchedAt: new Date().toISOString(),
+    };
+  }
+  return matches;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const rawUsername = searchParams.get("username") ?? "";
@@ -60,15 +89,16 @@ export async function GET(request: NextRequest) {
     let resolvedPlayerName = username;
 
     if (!id && username && !forceRefresh) {
-      const cachedPlayer = await getPubgPlayerCache<unknown[]>(username);
+      const cachedPlayer = await getPubgPlayerCache<unknown>(username);
       if (cachedPlayer) {
         id = cachedPlayer.accountId;
         resolvedPlayerName = cachedPlayer.playerName;
+        const cachedMatches = extractCachedMatches(cachedPlayer.statsData);
 
-        if (cachedPlayer.isFresh && Array.isArray(cachedPlayer.statsData)) {
+        if (cachedPlayer.isFresh && cachedMatches.length > 0) {
           return NextResponse.json({
             account_id: cachedPlayer.accountId,
-            stats_data: cachedPlayer.statsData,
+            stats_data: cachedMatches,
             cache: {
               source: "supabase",
               fresh: true,
@@ -112,10 +142,11 @@ export async function GET(request: NextRequest) {
       const cached = await getApiCache<unknown[]>(cacheKey);
       if (Array.isArray(cached)) {
         if (resolvedPlayerName) {
+          const existingCache = await getPubgPlayerCache<unknown>(resolvedPlayerName);
           await upsertPubgPlayerCache({
             playerName: resolvedPlayerName,
             accountId: id,
-            statsData: cached,
+            statsData: mergeMatchesIntoCachePayload(existingCache?.statsData, cached),
           });
         }
         return NextResponse.json({
@@ -136,10 +167,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (resolvedPlayerName) {
+      const existingCache = await getPubgPlayerCache<unknown>(resolvedPlayerName);
       await upsertPubgPlayerCache({
         playerName: resolvedPlayerName,
         accountId: id,
-        statsData: data,
+        statsData: mergeMatchesIntoCachePayload(existingCache?.statsData, data),
       });
     }
 

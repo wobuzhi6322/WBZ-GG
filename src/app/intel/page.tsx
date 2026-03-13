@@ -149,7 +149,7 @@ function resolveMaxUiZoom(map: MapIntelDefinition): number {
 }
 
 export default function IntelPage() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const locale = language === "ko" ? "ko-KR" : "en-US";
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const [mapViewportEl, setMapViewportEl] = useState<HTMLDivElement | null>(null);
@@ -168,11 +168,11 @@ export default function IntelPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [showFixedVehicles, setShowFixedVehicles] = useState(true);
-  const [showSpawnVehicles, setShowSpawnVehicles] = useState(true);
-  const [showBoats, setShowBoats] = useState(true);
-  const [showSecretRooms, setShowSecretRooms] = useState(true);
-  const [showGliders, setShowGliders] = useState(true);
+  const showFixedVehicles = false;
+  const showSpawnVehicles = false;
+  const showBoats = false;
+  const showSecretRooms = false;
+  const showGliders = false;
   const [showGrid, setShowGrid] = useState(true);
   const [showZoneLabels, setShowZoneLabels] = useState(true);
   const [showFlightPath, setShowFlightPath] = useState(false);
@@ -210,95 +210,7 @@ export default function IntelPage() {
 
   const gridCells = useMemo(() => Math.max(2, Math.round(selectedMapDefinition.sizeKm)), [selectedMapDefinition.sizeKm]);
 
-  const text = useMemo(() => {
-    if (language === "ko") {
-      return {
-        title: "맵 인텔",
-        subtitle: "고해상도 전술 지도 + 차량/선박/비밀의 방/글라이더 정보를 통합 표시합니다.",
-        source: "데이터 출처",
-        syncedAt: "동기화 시각",
-        loading: "맵 데이터를 불러오는 중...",
-        refreshError: "맵 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        mapList: "맵 선택",
-        options: "표시 옵션",
-        optionHint: "낙하지점 설정이 켜져 있으면 지도 클릭 시 체크한 반경 원이 즉시 생성됩니다.",
-        interactionHint: "거리측정: 좌클릭 점 추가, 우클릭 마지막 점 삭제",
-        fixedVehicles: "고정 차량",
-        spawnVehicles: "스폰 차량",
-        boats: "선박",
-        secretRooms: "비밀의 방",
-        gliders: "글라이더",
-        zoneLabels: "지역명",
-        grid: "격자 (1km/100m)",
-        flightPath: "비행 경로",
-        distance: "거리 측정",
-        dropPlanner: "낙하지점 설정",
-        dropPresetTitle: "반경 프리셋",
-        dropPresetHint: "체크한 반경(m)을 기준으로 핑 클릭 시 원이 생성됩니다.",
-        dropPresetEmpty: "반경을 최소 1개 이상 체크하세요.",
-        dropOpacity: "반경 투명도",
-        clearFlightPath: "비행 경로 초기화",
-        clearDistance: "측정 초기화",
-        clearDropZones: "낙하지점 초기화",
-        flightDistance: "비행 경로 거리",
-        totalDistance: "총 측정 거리",
-        dropZonesTitle: "낙하지점 반경",
-        dropZonesEmpty: "낙하지점 핑을 찍으면 체크된 반경 원이 표시됩니다.",
-        dropRadiusHint: "8x8 기준 큰 칸 1km, 작은 칸 100m",
-        zoom: "줌",
-        resetZoom: "줌 초기화",
-        zoomHint: "마우스 휠 또는 +/- 버튼으로 확대/축소",
-        panHint: "확대 후 지도 드래그로 위치 이동",
-        mapSize: "맵 크기",
-        noFlightPath: "비행 경로 시작점/도착점을 지도에서 클릭하세요.",
-        cursor: "현재 좌표",
-        gridRef: "격자",
-      };
-    }
-
-    return {
-      title: "Map Intel",
-      subtitle: "High-resolution tactical map with vehicles, boats, secret rooms, and gliders.",
-      source: "Data Source",
-      syncedAt: "Synced At",
-      loading: "Loading map intel...",
-      refreshError: "Unable to load map intel right now. Please try again.",
-      mapList: "Map List",
-      options: "Layer Options",
-      optionHint: "With drop planner enabled, map clicks immediately create circles using checked radius presets.",
-      interactionHint: "Distance: left click to add point, right click to remove last point",
-      fixedVehicles: "Fixed Vehicles",
-      spawnVehicles: "Spawn Vehicles",
-      boats: "Boats",
-      secretRooms: "Secret Rooms",
-      gliders: "Gliders",
-      zoneLabels: "Zone Labels",
-      grid: "Grid (1km/100m)",
-      flightPath: "Flight Path",
-      distance: "Distance",
-      dropPlanner: "Drop Planner",
-      dropPresetTitle: "Radius Presets",
-      dropPresetHint: "Checked radius values are applied when you click a drop pin on map.",
-      dropPresetEmpty: "Select at least one radius preset.",
-      dropOpacity: "Circle Opacity",
-      clearFlightPath: "Reset Flight Path",
-      clearDistance: "Reset Measure",
-      clearDropZones: "Reset Drop Zones",
-      flightDistance: "Flight Path Distance",
-      totalDistance: "Measured Distance",
-      dropZonesTitle: "Drop Radius",
-      dropZonesEmpty: "Click a drop pin to render checked radius circles.",
-      dropRadiusHint: "On 8x8 maps: major grid 1km, minor grid 100m",
-      zoom: "Zoom",
-      resetZoom: "Reset Zoom",
-      zoomHint: "Use mouse wheel or +/- buttons",
-      panHint: "Drag map to move position after zooming in",
-      mapSize: "Map Size",
-      noFlightPath: "Click start and end points on the map.",
-      cursor: "Cursor",
-      gridRef: "Grid Ref",
-    };
-  }, [language]);
+  const text = t.mapIntel;
 
   const fetchMapIntel = useCallback(async () => {
     setLoading(true);
@@ -358,24 +270,8 @@ export default function IntelPage() {
 
     const layers: Array<MapIntelCategory & { color: string; keyName: string }> = [];
 
-    if (showFixedVehicles) {
-      layers.push({ ...payload.categories.fixedVehicles, color: "#ef4444", keyName: "fixedVehicles" });
-    }
-    if (showSpawnVehicles) {
-      layers.push({ ...payload.categories.spawnVehicles, color: "#f59e0b", keyName: "spawnVehicles" });
-    }
-    if (showBoats) {
-      layers.push({ ...payload.categories.boats, color: "#06b6d4", keyName: "boats" });
-    }
-    if (showSecretRooms) {
-      layers.push({ ...payload.categories.secretRooms, color: "#22c55e", keyName: "secretRooms" });
-    }
-    if (showGliders) {
-      layers.push({ ...payload.categories.gliders, color: "#3b82f6", keyName: "gliders" });
-    }
-
     return layers;
-  }, [payload, showFixedVehicles, showSpawnVehicles, showBoats, showSecretRooms, showGliders]);
+  }, [payload]);
 
   const zoneLabels = useMemo(() => MAP_ZONE_LABELS[selectedMapId] ?? [], [selectedMapId]);
 
@@ -917,14 +813,28 @@ export default function IntelPage() {
                   preserveAspectRatio="none"
                 >
                   {showFlightPath && flightLine && (
-                    <polyline
-                      points={flightLine}
-                      fill="none"
-                      stroke="#38bdf8"
-                      strokeWidth={0.35}
-                      strokeDasharray="1.5 1.2"
-                      vectorEffect="non-scaling-stroke"
-                    />
+                    <>
+                      <polyline
+                        points={flightLine}
+                        fill="none"
+                        stroke="#FBBF24"
+                        strokeOpacity={0.3}
+                        strokeWidth={1.6}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <polyline
+                        points={flightLine}
+                        fill="none"
+                        stroke="#FDE047"
+                        strokeWidth={1.05}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeDasharray="2.2 1.4"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </>
                   )}
 
                   {showDistanceMeasure && measurePolyline && (
@@ -938,24 +848,35 @@ export default function IntelPage() {
                   )}
 
                   {dropZones.map((zone) => (
-                    <circle
-                      key={`zone-ring-${zone.id}`}
-                      cx={zone.center.xPercent}
-                      cy={zone.center.yPercent}
-                      r={radiusMetersToPercent(zone.radiusMeters, selectedMapDefinition.sizeKm)}
-                      fill={`rgba(34, 197, 94, ${Math.max(0, Math.min(1, dropOpacityPercent / 100)) * 0.45})`}
-                      stroke="#22c55e"
-                      strokeWidth={0.35}
-                      strokeDasharray="1.4 1"
-                      vectorEffect="non-scaling-stroke"
-                    />
+                    <g key={`zone-ring-${zone.id}`}>
+                      <circle
+                        cx={zone.center.xPercent}
+                        cy={zone.center.yPercent}
+                        r={radiusMetersToPercent(zone.radiusMeters, selectedMapDefinition.sizeKm)}
+                        fill="none"
+                        stroke="#22D3EE"
+                        strokeOpacity={0.22}
+                        strokeWidth={1.45}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <circle
+                        cx={zone.center.xPercent}
+                        cy={zone.center.yPercent}
+                        r={radiusMetersToPercent(zone.radiusMeters, selectedMapDefinition.sizeKm)}
+                        fill={`rgba(34, 211, 238, ${Math.max(0.18, Math.min(0.55, dropOpacityPercent / 100))})`}
+                        stroke="#22D3EE"
+                        strokeWidth={0.8}
+                        strokeDasharray="2.1 1.1"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </g>
                   ))}
                 </svg>
 
                 <div className="absolute inset-0 pointer-events-none">
                   {showFlightPath && flightPathStart && (
                     <span
-                      className="absolute w-3 h-3 rounded-full bg-sky-400 border border-white"
+                      className="absolute w-4 h-4 rounded-full border border-white bg-yellow-300 shadow-[0_0_14px_rgba(251,191,36,0.95)]"
                       style={{
                         left: `${flightPathStart.xPercent}%`,
                         top: `${flightPathStart.yPercent}%`,
@@ -965,7 +886,7 @@ export default function IntelPage() {
                   )}
                   {showFlightPath && flightPathEnd && (
                     <span
-                      className="absolute w-3 h-3 rounded-full bg-sky-300 border border-white"
+                      className="absolute w-4 h-4 rounded-full border border-white bg-yellow-200 shadow-[0_0_14px_rgba(253,224,71,0.95)]"
                       style={{
                         left: `${flightPathEnd.xPercent}%`,
                         top: `${flightPathEnd.yPercent}%`,
@@ -1064,39 +985,54 @@ export default function IntelPage() {
               <div>
                 <h4 className="text-sm font-black text-white mb-2">{text.options}</h4>
                 <div className="space-y-2 text-sm">
-                  <label className="flex items-center justify-between gap-2 text-wbz-mute">
-                    <span>{text.fixedVehicles}</span>
+                  <label className="flex items-center justify-between gap-2 text-wbz-mute opacity-50 cursor-not-allowed">
+                    <span className="flex items-center gap-1.5">
+                      <span>{text.fixedVehicles}</span>
+                        <span className="text-[11px] text-zinc-500">({text.updating})</span>
+                    </span>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-red-300">{payload.categories.fixedVehicles.count}</span>
-                      <input type="checkbox" checked={showFixedVehicles} onChange={(e) => setShowFixedVehicles(e.target.checked)} />
+                      <input type="checkbox" checked={showFixedVehicles} disabled={true} readOnly />
                     </div>
                   </label>
-                  <label className="flex items-center justify-between gap-2 text-wbz-mute">
-                    <span>{text.spawnVehicles}</span>
+                  <label className="flex items-center justify-between gap-2 text-wbz-mute opacity-50 cursor-not-allowed">
+                    <span className="flex items-center gap-1.5">
+                      <span>{text.spawnVehicles}</span>
+                        <span className="text-[11px] text-zinc-500">({text.updating})</span>
+                    </span>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-amber-300">{payload.categories.spawnVehicles.count}</span>
-                      <input type="checkbox" checked={showSpawnVehicles} onChange={(e) => setShowSpawnVehicles(e.target.checked)} />
+                      <input type="checkbox" checked={showSpawnVehicles} disabled={true} readOnly />
                     </div>
                   </label>
-                  <label className="flex items-center justify-between gap-2 text-wbz-mute">
-                    <span>{text.boats}</span>
+                  <label className="flex items-center justify-between gap-2 text-wbz-mute opacity-50 cursor-not-allowed">
+                    <span className="flex items-center gap-1.5">
+                      <span>{text.boats}</span>
+                        <span className="text-[11px] text-zinc-500">({text.updating})</span>
+                    </span>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-cyan-300">{payload.categories.boats.count}</span>
-                      <input type="checkbox" checked={showBoats} onChange={(e) => setShowBoats(e.target.checked)} />
+                      <input type="checkbox" checked={showBoats} disabled={true} readOnly />
                     </div>
                   </label>
-                  <label className="flex items-center justify-between gap-2 text-wbz-mute">
-                    <span>{text.secretRooms}</span>
+                  <label className="flex items-center justify-between gap-2 text-wbz-mute opacity-50 cursor-not-allowed">
+                    <span className="flex items-center gap-1.5">
+                      <span>{text.secretRooms}</span>
+                        <span className="text-[11px] text-zinc-500">({text.updating})</span>
+                    </span>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-green-300">{payload.categories.secretRooms.count}</span>
-                      <input type="checkbox" checked={showSecretRooms} onChange={(e) => setShowSecretRooms(e.target.checked)} />
+                      <input type="checkbox" checked={showSecretRooms} disabled={true} readOnly />
                     </div>
                   </label>
-                  <label className="flex items-center justify-between gap-2 text-wbz-mute">
-                    <span>{text.gliders}</span>
+                  <label className="flex items-center justify-between gap-2 text-wbz-mute opacity-50 cursor-not-allowed">
+                    <span className="flex items-center gap-1.5">
+                      <span>{text.gliders}</span>
+                        <span className="text-[11px] text-zinc-500">({text.updating})</span>
+                    </span>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-sky-300">{payload.categories.gliders.count}</span>
-                      <input type="checkbox" checked={showGliders} onChange={(e) => setShowGliders(e.target.checked)} />
+                      <input type="checkbox" checked={showGliders} disabled={true} readOnly />
                     </div>
                   </label>
                   <label className="flex items-center justify-between gap-2 text-wbz-mute pt-2 border-t border-white/5">

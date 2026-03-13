@@ -13,40 +13,20 @@ const PLATFORM_OPTIONS = [
 ] as const;
 
 export default function HeroSection() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const [platform, setPlatform] = useState<"steam" | "kakao">("steam");
   const [query, setQuery] = useState("");
 
-  const uiText = useMemo(() => {
-    if (language === "ko") {
-      return {
-        platform: "플랫폼",
-        platformAria: "플랫폼 선택",
-        searchAria: "닉네임 검색",
-      };
-    }
-    if (language === "ja") {
-      return {
-        platform: "プラットフォーム",
-        platformAria: "プラットフォーム選択",
-        searchAria: "ニックネーム検索",
-      };
-    }
-    if (language === "zh") {
-      return {
-        platform: "平台",
-        platformAria: "选择平台",
-        searchAria: "搜索昵称",
-      };
-    }
-    return {
-      platform: "Platform",
-      platformAria: "Select platform",
-      searchAria: "Search nickname",
-    };
-  }, [language]);
+  const uiText = useMemo(
+    () => ({
+      platform: t.hero.platform,
+      platformAria: t.hero.platformAria,
+      searchAria: t.hero.searchAria,
+    }),
+    [t.hero]
+  );
 
   const handleSearch = () => {
     const nickname = sanitizePlayerSearchInput(query).trim();

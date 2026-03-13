@@ -1,15 +1,17 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Image from "next/image";
+import { useLanguage } from "@/context/LanguageContext";
 import HeroSection from "@/components/features/HeroSection";
 import RecentSearches from "@/components/features/RecentSearches";
-import WeeklyMapRotationWidget from "@/components/features/WeeklyMapRotationWidget";
+import MapRotation from "@/components/features/MapRotation";
 
 const MAIN_LOGO_SRC = "/branding/wbz-main-logo.png";
 
 export default function Home() {
   const [logoFailed, setLogoFailed] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div className="relative min-h-[calc(100vh-120px)] overflow-hidden">
@@ -20,23 +22,23 @@ export default function Home() {
       </div>
 
       <section className="container mx-auto max-w-6xl px-4 pb-16 pt-6 md:pt-8">
-        <div className="relative overflow-hidden rounded-[30px] border border-gray-200 dark:border-white/10 bg-white dark:bg-black/40 p-4 md:p-7">
+        <div className="relative overflow-hidden rounded-[30px] border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-black/40 md:p-7">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,173,51,0.08),rgba(0,0,0,0)_40%,rgba(29,205,254,0.06))]" />
 
           <div className="relative mx-auto max-w-5xl">
             {!logoFailed ? (
               <Image
                 src={MAIN_LOGO_SRC}
-                alt="WBZ 메인 로고"
+                alt={t.home.mainLogoAlt}
                 width={1920}
                 height={1080}
                 priority
-                className="mx-auto h-auto w-[min(100%,760px)] md:w-[min(100%,900px)] max-h-[220px] md:max-h-[300px] select-none object-contain"
+                className="mx-auto h-auto max-h-[220px] w-[min(100%,760px)] select-none object-contain md:max-h-[300px] md:w-[min(100%,900px)]"
                 onError={() => setLogoFailed(true)}
               />
             ) : (
-              <div className="mx-auto flex min-h-[260px] w-full max-w-5xl items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-white/20 bg-gray-50 dark:bg-black/35 px-5 text-center text-sm text-wbz-mute">
-                `public/branding/wbz-main-logo.png` 파일을 넣으면 메인 로고가 표시됩니다.
+              <div className="mx-auto flex min-h-[260px] w-full max-w-5xl items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-5 text-center text-sm text-wbz-mute dark:border-white/20 dark:bg-black/35">
+                {t.home.logoPlaceholder}
               </div>
             )}
           </div>
@@ -44,7 +46,7 @@ export default function Home() {
           <div className="relative mx-auto mt-3 max-w-4xl md:mt-4">
             <HeroSection />
             <RecentSearches />
-            <WeeklyMapRotationWidget />
+            <MapRotation />
           </div>
         </div>
       </section>
